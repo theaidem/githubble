@@ -1,0 +1,80 @@
+/* Contains your custom styles */
+
+#app {
+	height: 100%;
+}
+
+#app .ui.menu .container {
+	display: block;
+}
+
+#app .ui.menu .column  {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+
+#app .ui.menu .column .item:before {
+	width: 0px;
+}
+
+#app .ui.menu .column .item .ui.grid{
+	width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+#app .ui.menu .item img.logo {
+	margin-right: 0.5em;
+	width: 2em;
+}
+#app .ui.menu .item.header {
+	color: #4385fb;
+	padding: 18px;
+}
+
+#app .ui.menu .item.stat {
+	background: #DCF5FF;
+}
+
+#app .ui.menu .item.stat .column {
+	width: 100%;
+	font-size: 12px;
+}
+
+#app .board .content.container {
+	padding-top: 80px;
+}
+
+.event-cart {
+	text-align: center;
+	position: fixed;
+	width: 260px;
+}
+
+.event-cart.empty.octicon {
+	font-size: 5em;
+}
+
+#app .event.item .content.actor-picture {
+	width: 35px;
+	height: 35px;
+}
+
+#app .event.item.viewing {
+    	background: #98D5FF;
+}
+
+.stats .right {
+	float: right;
+}
+
+.stats .most-forked .item .octicon,
+.stats .most-starred .item .octicon {
+	float: left;
+}
+
+.stats .most-forked .item .content,
+.stats .most-starred .item .content {
+	padding-left: 18px;
+}

@@ -1,0 +1,10 @@
+
+export const APP_INIT_REQUEST = 'APP_INIT_REQUEST'
+export const APP_INIT_SUCCESS = 'APP_INIT_SUCCESS'
+export const APP_INIT_FAILURE = 'APP_INIT_FAILURE'
+export const APP_RESET = 'APP_RESET'
+
+export const EVENT_RECEIVE = 'EVENT_RECEIVE'
+export const EVENT_VIEW = 'EVENT_VIEW'
+export const EVENTS_ON_PAGE = 'EVENTS_ON_PAGE'
+export const EVENTS_FREEZE = 'EVENTS_FREEZE'

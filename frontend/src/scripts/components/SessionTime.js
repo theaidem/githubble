@@ -1,0 +1,25 @@
+import React, { Component } from 'react'
+import moment from "moment"
+
+class SessionTime extends Component {
+	
+	constructor(props) {
+		super(props)
+		this.state = {started: moment.now(), sessionDuration: ""}
+	}	
+
+	componentDidMount(){
+		setInterval(	 () => {
+			const sess =  moment.duration(moment().diff(this.state.started)).humanize()
+			this.setState({sessionDuration: sess})
+		}, 1000)
+	}
+
+	render() {
+		return (
+			<span>{ this.state.sessionDuration }</span>
+		)
+	}
+}
+
+export default SessionTime
