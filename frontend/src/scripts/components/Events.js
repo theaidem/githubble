@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react'
-import Event from "./Event"
+import Event from "../containers/Event"
 
 class Events extends Component {
 
