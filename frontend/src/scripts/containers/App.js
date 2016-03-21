@@ -17,11 +17,6 @@ class App extends Component {
 		doAppInit()
 	}
 
-	componentDidMount() {
-		const { appReset } = this.props
-		//setTimeout(() => (appReset()), 5000)
-	}
-
 	render() {
 		const { isLoading, err } = this.props
 		if (err) {return <Error err={err}/>}

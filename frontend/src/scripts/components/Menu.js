@@ -9,7 +9,7 @@ class Menu extends Component {
 	}
 
 	render() {
-		const { numOnPage, eventsOnPage, eventsFreeze, isFrozen, events, actors, repos } = this.props
+		const { numOnPage, eventsOnPage, eventsFreeze, isFrozen, appReset, events, actors, repos } = this.props
 		return (
 			<div className="ui fixed menu">
 				<div className="ui container">
@@ -22,7 +22,9 @@ class Menu extends Component {
 						</div>
 						<div className="eight wide column">
 							<div className="item">
-								<TopFilter numOnPage={ numOnPage } eventsOnPage={ eventsOnPage } eventsFreeze={ eventsFreeze } isFrozen={ isFrozen } />
+								<TopFilter 
+									numOnPage={ numOnPage } eventsOnPage={ eventsOnPage } 
+									eventsFreeze={ eventsFreeze } isFrozen={ isFrozen } appReset={ appReset } />
 							</div>
 						</div>
 						<div className="four wide column">

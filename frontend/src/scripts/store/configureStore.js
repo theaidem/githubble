@@ -2,9 +2,10 @@ import { createStore, applyMiddleware, compose } from 'redux'
 import createLogger from 'redux-logger'
 import thunk from 'redux-thunk'
 import reducers from '../reducers'
+import { APP_RESET } from "../constants/actions"
 
 const applyResetReducer = reducer => (state, action) => {
-	if (action.type === 'APP_RESET') {
+	if (action.type === APP_RESET) {
 		return reducer(undefined, action)
 	} else {
 		return reducer(state, action)

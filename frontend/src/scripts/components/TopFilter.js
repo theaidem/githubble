@@ -17,6 +17,11 @@ class TopFilter extends Component {
 		eventsFreeze(!isFrozen)	
 	}
 
+	handleAppReset(e) {
+		const { appReset } = this.props
+		appReset()	
+	}
+
 	render() {
 		const { numOnPage, isFrozen } = this.props
 
@@ -34,8 +39,9 @@ class TopFilter extends Component {
 						</div>
 					</div>
 					<div className="six wide column">	
-						<div className="ui right floated green tiny buttons">
-							<button className={ (isFrozen) ? "ui button active" : "ui button" } onClick={this.handleFreezeFeed.bind(this)}>{(isFrozen) ? "Unfreeze" : "Freeze"}</button>
+						<div className="ui right floated tiny buttons">
+							<button className={ (isFrozen) ? "ui green button active" : "ui green button" } onClick={this.handleFreezeFeed.bind(this)}>{(isFrozen) ? "Unfreeze" : "Freeze"}</button>
+							<button className="ui red button" onClick={this.handleAppReset.bind(this)}>Reset</button>
 						</div>
 					</div>
 				</div>
@@ -50,7 +56,8 @@ TopFilter.propTypes = {
 	numOnPage: PropTypes.number.isRequired,
 	eventsOnPage: PropTypes.func.isRequired,
 	isFrozen: PropTypes.bool.isRequired,
-	eventsFreeze: PropTypes.func.isRequired
+	eventsFreeze: PropTypes.func.isRequired,
+	appReset: PropTypes.func.isRequired
 }
 
 export default TopFilter

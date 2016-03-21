@@ -9,6 +9,7 @@ import take from 'lodash/array/take'
 import indexOf from 'lodash/array/indexOf'
 import sortByOrder from 'lodash/collection/sortByOrder'
 import { eventsOnPage, eventView, eventsFreeze } from "../actions/event"
+import { appReset } from "../actions/app"
 
 class Board extends Component {
 	
@@ -17,7 +18,7 @@ class Board extends Component {
 	}
 
 	render() {
-		const { events, actors, repos, numOnPage, eventsOnPage, eventView, eventsFreeze, isFrozen, eventIds,
+		const { events, actors, repos, numOnPage, eventsOnPage, eventView, eventsFreeze, isFrozen, appReset, eventIds,
 		eventViewerNext, eventViewerCurrent, eventViewerPrev,
 		bestStargazers, bestForkers,
 		mostStarred, mostForked } = this.props
@@ -31,7 +32,7 @@ class Board extends Component {
 
 				<Menu 
 					numOnPage={ numOnPage } eventsOnPage={ eventsOnPage } 
-					eventsFreeze={ eventsFreeze } isFrozen={ isFrozen }
+					eventsFreeze={ eventsFreeze } isFrozen={ isFrozen } appReset={ appReset }
 					events={ events } actors={ actors } repos={ repos } />
 
 				<div className="ui content container">
@@ -138,6 +139,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
 	return bindActionCreators({
+		appReset: appReset,
 		eventsOnPage: eventsOnPage,
 		eventsFreeze: eventsFreeze,
 		eventView: eventView
