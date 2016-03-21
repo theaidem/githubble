@@ -8,6 +8,11 @@ class SessionTime extends Component {
 		this.state = {started: moment.now(), sessionDuration: ""}
 	}	
 
+	shouldComponentUpdate(nextProps, nextState) {
+		const { sessionDuration } = this.state
+		return sessionDuration !== nextState.sessionDuration
+	}
+
 	componentDidMount(){
 		setInterval(	 () => {
 			const sess =  moment.duration(moment().diff(this.state.started)).humanize()
@@ -16,8 +21,9 @@ class SessionTime extends Component {
 	}
 
 	render() {
+		const { sessionDuration } = this.state
 		return (
-			<span>{ this.state.sessionDuration }</span>
+			<span>{ sessionDuration }</span>
 		)
 	}
 }

@@ -3,7 +3,7 @@ import { EVENT_VIEW, EVENTS_ON_PAGE, EVENTS_FREEZE } from "../constants/actions"
 import { CONFIG } from "../constants/config"
 
 const initState = {
-	isLoading: false,
+	isLoading: true,
 	err: null,
 	viewingEvent: null,
 	numOnPage: CONFIG.numEventsOnPageValues[0],

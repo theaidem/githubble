@@ -1,5 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux'
-import createLogger from 'redux-logger';
+import createLogger from 'redux-logger'
 import thunk from 'redux-thunk'
 import reducers from '../reducers'
 
@@ -13,7 +13,7 @@ const applyResetReducer = reducer => (state, action) => {
 
 export function configureStore(initialState = {}) {
 	
-	let middlewares = [ thunk ];
+	let middlewares = [ thunk ]
 	
 	if (process.env.NODE_ENV !== 'production') {
 		const logger = createLogger({ collapsed: true })
@@ -24,7 +24,7 @@ export function configureStore(initialState = {}) {
 
 		applyMiddleware(...middlewares)
 
-	)(createStore)(applyResetReducer(reducers), initialState);
+	)(createStore)(applyResetReducer(reducers), initialState)
 
 	if (module.hot) {
 		// Enable Webpack hot module replacement for reducers
