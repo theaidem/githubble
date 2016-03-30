@@ -17,7 +17,7 @@ class Stats extends Component {
 						if (a.stars.length > 1) {
 							const actor = actors[a.id]
 							return (
-								<div className="item">
+								<div className="item" key={actor.id}>
 									<img className="ui mini image" src={ actor.avatar_url }/>
 									<div className="content">
 										<a className="ui header" target="_blank" href={`https:\/\/github.com/${actor.login}`}>
@@ -43,7 +43,7 @@ class Stats extends Component {
 						if (a.stars.length > 1) {
 							const repo = repos[a.id]
 							return (
-								<div className="item">
+								<div className="item" key={repo.id}>
 									<span className="octicon octicon-repo"></span>
 									<div className="content">
 										<a className="header" target="_blank" href={`https:\/\/github.com/${repo.name}`}>{ repo.name }</a>
@@ -67,7 +67,7 @@ class Stats extends Component {
 						if (a.forks.length > 1) {
 							const actor = actors[a.id]
 							return (
-								<div className="item">
+								<div className="item" key={actor.id}>
 									<img className="ui mini image" src={ actor.avatar_url }/>
 									<div className="content">
 										<a className="ui header" target="_blank" href={`https:\/\/github.com/${actor.login}`}>
@@ -93,7 +93,7 @@ class Stats extends Component {
 						if (a.forks.length > 1) {
 							const repo = repos[a.id]
 							return (
-								<div className="item">
+								<div className="item" key={repo.id}>
 									<span className="octicon octicon-repo"></span>
 									<div className="content">
 										<a className="header" target="_blank" href={`https:\/\/github.com/${repo.name}`}>{ repo.name }</a>
