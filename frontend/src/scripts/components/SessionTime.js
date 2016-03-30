@@ -5,11 +5,13 @@ class SessionTime extends Component {
 	
 	constructor(props) {
 		super(props)
-		this.state = {started: moment.now(), sessionDuration: ""}
+		this.state = {sessionDuration: "", started: null}
 	}	
 
 	shouldComponentUpdate(nextProps, nextState) {
+		const { started } = this.props
 		const { sessionDuration } = this.state
+		if (started != nextState.started) this.setState({started: started})
 		return sessionDuration !== nextState.sessionDuration
 	}
 

@@ -109,7 +109,7 @@ class Stats extends Component {
 	}
 
 	render() {
-		const { bestStargazers,  bestForkers, mostStarred, mostForked, events, actors, repos} = this.props
+		const { bestStargazers,  bestForkers, mostStarred, mostForked, events, actors, repos, started} = this.props
 		return (
 			<div className="stats">
 				<h5 className="ui top attached header">
@@ -132,7 +132,7 @@ class Stats extends Component {
 			
 				<div className="ui bottom attached info message">
 					<i className="info icon"></i>
-					Statistic from <SessionTime/>
+					Statistic from <SessionTime started={ started }/>
 				</div>
 			</div>	
 		)

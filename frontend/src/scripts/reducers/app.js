@@ -1,3 +1,4 @@
+import moment from "moment"
 import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_RESET } from "../constants/actions"
 import { EVENT_VIEW, EVENTS_ON_PAGE, EVENTS_FREEZE } from "../constants/actions"
 import { CONFIG } from "../constants/config"
@@ -5,6 +6,7 @@ import { CONFIG } from "../constants/config"
 const initState = {
 	isLoading: true,
 	err: null,
+	started: moment.now(),
 	viewingEvent: null,
 	numOnPage: CONFIG.numEventsOnPageValues[0],
 	isFrozen: false
@@ -33,7 +35,7 @@ export default function app(state = initState, action) {
 			return Object.assign({}, state, {isFrozen: action.isFrozen})
 		
 		case APP_RESET:
-			return Object.assign({}, state, {isLoading: false, err: null})
+			return Object.assign({}, state, {isLoading: false, err: null, started: moment.now()})
 
 		default:
 			return state

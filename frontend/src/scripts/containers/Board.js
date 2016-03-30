@@ -18,7 +18,7 @@ class Board extends Component {
 	}
 
 	render() {
-		const { events, actors, repos, numOnPage, eventsOnPage, eventView, eventsFreeze, isFrozen, appReset, eventIds,
+		const { events, actors, repos, numOnPage, eventsOnPage, eventView, eventsFreeze, isFrozen, appReset, started, eventIds,
 		eventViewerNext, eventViewerCurrent, eventViewerPrev,
 		bestStargazers, bestForkers,
 		mostStarred, mostForked } = this.props
@@ -58,7 +58,7 @@ class Board extends Component {
 						<div className="ui four wide column">
 
 							<Stats 
-								actors={ actors } repos={ repos } events={ events }  
+								actors={ actors } repos={ repos } events={ events }  started={ started }
 								bestStargazers={ bestStargazers } bestForkers={ bestForkers }
 								mostStarred={ mostStarred } mostForked={ mostForked } />
 
@@ -117,6 +117,7 @@ function mapStateToProps(state) {
 	}
 
 	return {
+		started: state.app.started,
 		numOnPage: state.app.numOnPage,
 		eventIds: take(state.entities.eventIds, state.app.numOnPage), 
 		isFrozen: state.app.isFrozen,
