@@ -31,9 +31,7 @@ cd githubble/backend
 go get -v .
 ```
 
-Backend
-
-: Generate your personal [access token](https://github.com/settings/tokens) from Github, then Build and run githubble server:
+Generate your personal [access token](https://github.com/settings/tokens) from Github, then Build and run githubble server:
 
 `<github_access_token>` is Your Personal [access token](https://github.com/settings/tokens) from Github
 
@@ -55,9 +53,7 @@ and run the commands:
 make build && make run
 ```
 
-Frontend
-
-: From another terminal window:
+From another terminal window:
 
 ```bash
 cd path/to/githubble/frontend
