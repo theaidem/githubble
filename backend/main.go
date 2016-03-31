@@ -1,19 +1,17 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"os"
 )
 
+var token string
+
 func main() {
 
-	token := flag.String("token", "", "Your Personal access token (https://github.com/settings/tokens)")
-	flag.Parse()
-
 	sse := NewServer()
-	fetcher, err := NewFetcher(*token)
+	fetcher, err := NewFetcher(token)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -30,5 +28,5 @@ func main() {
 		}
 	}()
 
-	log.Fatal("HTTP server error: ", http.ListenAndServe("localhost:3000", sse))
+	log.Fatal("HTTP server error: ", http.ListenAndServe("0.0.0.0:3000", sse))
 }

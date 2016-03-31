@@ -51,8 +51,8 @@ class Event extends Component {
 				</div>
 				
 				<div className="event-datails content">
-					at { moment(event.created_at, "YYYY-MM-DDTHH:mm:ssZ").format("h:mm:ss a") }
 					{ this.renderEventContent(event.type, actor, repo) }
+					at { moment(event.created_at, "YYYY-MM-DDTHH:mm:ssZ").format("h:mm:ss a") }
 				</div>
 			</div>
 		)

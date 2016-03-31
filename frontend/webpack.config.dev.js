@@ -43,6 +43,9 @@ module.exports = {
 	devServer: {
 		historyApiFallback: true,
 		stats: { colors: true },
+		proxy: {
+			"/sse": "http://localhost:3000"
+		},
 		hot: true,
 		port: port
 	}
