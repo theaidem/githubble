@@ -1,7 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import GitHubRibbon from "../components/GitHubRibbon"
 import Menu from "../components/Menu"
 import Events from "../components/Events"
 import Stats from "../components/Stats"
@@ -30,8 +29,6 @@ class Board extends Component {
 
 		return (
 			<div className="board">
-
-				<GitHubRibbon/>
 
 				<Menu 
 					numOnPage={ numOnPage } eventsOnPage={ eventsOnPage } 

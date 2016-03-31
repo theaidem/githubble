@@ -8,7 +8,7 @@ class GitHubRibbon extends Component {
 
 	render() {
 		const style = { 
-			position: "absolute",
+			position: "fixed",
 			top: 0, 
 			right: 0, 
 			border: 0, 
