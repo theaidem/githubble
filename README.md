@@ -1,21 +1,23 @@
-# GitHubble
-=========
+# [GitHubble](http://githubble.com/)
 
-View github starts/forks in realtime
+View github stars/forks in realtime
 
-## What Uses
+## What Uses?
 
 ### Frontend
 
 [Redux](https://github.com/reactjs/redux), 
 [react](https://github.com/facebook/react),
-[normalizr](https://github.com/gaearon/normalizr),
-[webpack](https://github.com/webpack/webpack) module bundler
+[normalizr](https://github.com/gaearon/normalizr)
+
+[Webpack](https://github.com/webpack/webpack) module bundler
  and [Semantic UI](https://github.com/Semantic-Org/Semantic-UI) components
 
 ### Backend
 
 [Golang](https://golang.org/) :+1:
+
+[Server-Sent Events](http://www.w3schools.com/html/html5_serversentevents.asp) sending event streams for clients
 
 ## How to run localy
 
@@ -29,15 +31,33 @@ cd githubble/backend
 go get -v .
 ```
 
-Generate your personal [access token](https://github.com/settings/tokens) from Github, then Build and run githubble server:
+Backend
 
-```bash
-go build -o githubble && ./githubble  -token=<github_access_token>
-```
+: Generate your personal [access token](https://github.com/settings/tokens) from Github, then Build and run githubble server:
 
 `<github_access_token>` is Your Personal [access token](https://github.com/settings/tokens) from Github
 
-From another terminal window:
+```bash
+go build -o githubble -ldflags "-X main.token=<github_access_token>" && ./githubble
+```
+
+OR paste your token in `path/to/githubble/backend/Makefile`:
+
+```
+APPNAME = githubble
+TOKEN = <github_access_token>
+...
+```
+
+and run the commands:
+
+```bash
+make build && make run
+```
+
+Frontend
+
+: From another terminal window:
 
 ```bash
 cd path/to/githubble/frontend
@@ -50,5 +70,4 @@ npm i
 npm start
 ```
 
-open http://localhost:3001
-
+open [localhost:3001](http://localhost:3001)
