@@ -19,7 +19,7 @@ const (
 type Fetcher struct {
 	client  *http.Client
 	req     *http.Request
-	payload chan []byte
+	payload chan *SSEPayload
 	lastId  string
 }
 
@@ -36,7 +36,7 @@ func NewFetcher(token string) (*Fetcher, error) {
 		req.Header.Set("Authorization", tokenHeader)
 	}
 
-	payload := make(chan []byte, 1)
+	payload := make(chan *SSEPayload, 1)
 
 	fetcher := &Fetcher{client, req, payload, ""}
 	err = fetcher.test()
@@ -98,7 +98,10 @@ func (f *Fetcher) Start() {
 							event.Path("repo.name").Data())
 
 						// pew pew pew
-						f.payload <- event.Bytes()
+						f.payload <- &SSEPayload{
+							Event: "message",
+							Data:  event.Bytes(),
+						}
 
 					}
 

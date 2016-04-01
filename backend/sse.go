@@ -7,22 +7,26 @@ import (
 )
 
 type SSEBroker struct {
-	Notifier       chan []byte
-	newClients     chan chan []byte
-	closingClients chan chan []byte
-	clients        map[chan []byte]bool
+	Notifier       chan *SSEPayload
+	newClients     chan chan *SSEPayload
+	closingClients chan chan *SSEPayload
+	clients        map[chan *SSEPayload]bool
+}
+
+type SSEPayload struct {
+	Event string
+	Data  []byte
 }
 
 func NewServer() (s *SSEBroker) {
 	s = &SSEBroker{
-		Notifier:       make(chan []byte, 1),
-		newClients:     make(chan chan []byte),
-		closingClients: make(chan chan []byte),
-		clients:        make(map[chan []byte]bool),
+		Notifier:       make(chan *SSEPayload, 1),
+		newClients:     make(chan chan *SSEPayload),
+		closingClients: make(chan chan *SSEPayload),
+		clients:        make(map[chan *SSEPayload]bool),
 	}
 
 	go s.listen()
-
 	return
 }
 
@@ -40,7 +44,7 @@ func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Connection", "keep-alive")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 
-	messageChan := make(chan []byte)
+	messageChan := make(chan *SSEPayload)
 
 	s.newClients <- messageChan
 
@@ -56,7 +60,8 @@ func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}()
 
 	for {
-		fmt.Fprintf(rw, "data: %s\n\n", <-messageChan)
+		message := <-messageChan
+		fmt.Fprintf(rw, "event: %s\ndata: %s\n\n", message.Event, message.Data)
 		flusher.Flush()
 	}
 
