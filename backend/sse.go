@@ -67,15 +67,25 @@ func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 }
 
+func (s *SSEBroker) sendOnline(n int) {
+	usersLen := fmt.Sprintf("%d", n)
+	s.Notifier <- &SSEPayload{
+		Event: "online",
+		Data:  []byte(usersLen),
+	}
+}
+
 func (s *SSEBroker) listen() {
 	for {
 		select {
 		case c := <-s.newClients:
 			s.clients[c] = true
+			s.sendOnline(len(s.clients))
 			log.Printf("Client added. %d registered clients", len(s.clients))
 
 		case c := <-s.closingClients:
 			delete(s.clients, c)
+			s.sendOnline(len(s.clients))
 			log.Printf("Removed client. %d registered clients", len(s.clients))
 
 		case event := <-s.Notifier:

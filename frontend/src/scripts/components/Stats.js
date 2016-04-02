@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import filter from 'lodash/collection/filter'
 import SessionTime from "./SessionTime"
+import AppStats from "../containers/AppStats"
 
 class Stats extends Component {
 
@@ -134,6 +135,7 @@ class Stats extends Component {
 					<i className="info icon"></i>
 					Statistic from <SessionTime started={ started }/>
 				</div>
+				<AppStats/>
 			</div>	
 		)
 	}

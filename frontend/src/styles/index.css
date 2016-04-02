@@ -11,7 +11,7 @@
 @import '~semantic-ui-icon/icon.css';
 @import '~semantic-ui-image/image.css';
 /*@import '~semantic-ui-input/input.css';*/
-/*@import '~semantic-ui-label/label.css';*/
+@import '~semantic-ui-label/label.css';
 @import '~semantic-ui-list/list.css';
 @import '~semantic-ui-loader/loader.css';
 /*@import '~semantic-ui-rail/rail.css';*/

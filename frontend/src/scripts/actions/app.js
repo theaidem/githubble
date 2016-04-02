@@ -2,7 +2,7 @@ import { eventReceive } from "./event"
 import { normalize } from 'normalizr'
 import { eventSchema } from "../constants/schemas"
 import { CONFIG } from "../constants/config"
-import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_RESET } from "../constants/actions"
+import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_ONLINE_NOW, APP_RESET } from "../constants/actions"
 
 function appInitRequest() {
 	return {
@@ -20,6 +20,13 @@ function appInitFailure(err) {
 	return {
 		type: APP_INIT_FAILURE,
 		err
+	}
+}
+
+function appOnlineNow(num) {
+	return {
+		type: APP_ONLINE_NOW,
+		num
 	}
 }
 
@@ -53,6 +60,10 @@ export function doAppInit() {
 			const evnt = normalize(JSON.parse(e.data), eventSchema)
 			dispatch(eventReceive(evnt))
 		}
+
+		eventSource.addEventListener('online', (e) => {
+			dispatch(appOnlineNow(e.data))
+		})
 
 
 	}
