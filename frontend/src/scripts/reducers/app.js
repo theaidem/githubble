@@ -1,5 +1,5 @@
 import moment from "moment"
-import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_ONLINE_NOW, APP_RESET } from "../constants/actions"
+import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_ONLINE_NOW, APP_RATE_LIMITS, APP_RESET } from "../constants/actions"
 import { EVENT_VIEW, EVENTS_ON_PAGE, EVENTS_FREEZE } from "../constants/actions"
 import { CONFIG } from "../constants/config"
 
@@ -7,6 +7,7 @@ const initState = {
 	isLoading: true,
 	err: null,
 	online: null,
+	ratelimits: null,
 	started: moment.now(),
 	viewingEvent: null,
 	numOnPage: CONFIG.numEventsOnPageValues[0],
@@ -28,6 +29,9 @@ export default function app(state = initState, action) {
 
 		case APP_ONLINE_NOW:
 			return Object.assign({}, state, {online: action.num})
+
+		case APP_RATE_LIMITS:
+			return Object.assign({}, state, {ratelimits: action.data})
 
 		case EVENT_VIEW:
 			return Object.assign({}, state, {viewingEvent: action.eventId})

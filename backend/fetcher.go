@@ -107,6 +107,11 @@ func (f *Fetcher) Start() {
 
 				}
 
+				f.payload <- &SSEPayload{
+					Event: "ratelimits",
+					Data:  []byte(fmt.Sprintf("%s/%s", rem, limit)),
+				}
+
 				f.lastId = jsonParsed.Path("id").Index(0).String()
 
 			case http.StatusForbidden:

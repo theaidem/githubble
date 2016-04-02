@@ -2,7 +2,7 @@ import { eventReceive } from "./event"
 import { normalize } from 'normalizr'
 import { eventSchema } from "../constants/schemas"
 import { CONFIG } from "../constants/config"
-import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_ONLINE_NOW, APP_RESET } from "../constants/actions"
+import { APP_INIT_REQUEST, APP_INIT_SUCCESS, APP_INIT_FAILURE, APP_ONLINE_NOW, APP_RATE_LIMITS, APP_RESET } from "../constants/actions"
 
 function appInitRequest() {
 	return {
@@ -27,6 +27,13 @@ function appOnlineNow(num) {
 	return {
 		type: APP_ONLINE_NOW,
 		num
+	}
+}
+
+function appRateLimits(data) {
+	return {
+		type: APP_RATE_LIMITS,
+		data
 	}
 }
 
@@ -63,6 +70,10 @@ export function doAppInit() {
 
 		eventSource.addEventListener('online', (e) => {
 			dispatch(appOnlineNow(e.data))
+		})
+
+		eventSource.addEventListener('ratelimits', (e) => {
+			dispatch(appRateLimits(e.data))
 		})
 
 
