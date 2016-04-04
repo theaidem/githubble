@@ -79,9 +79,14 @@ func (f *Fetcher) Start() {
 				jsonParsed, err := gabs.ParseJSON(body)
 				if err != nil {
 					log.Println(err)
+					continue
 				}
 
-				events, _ := jsonParsed.Children()
+				events, err := jsonParsed.Children()
+				if err != nil {
+					log.Println(err)
+					continue
+				}
 
 				for _, event := range events {
 
