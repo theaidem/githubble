@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	API_EVENTS = "https://api.github.com/events"
+	apiEvents = "https://api.github.com/events"
 )
 
 type Fetcher struct {
@@ -26,7 +26,7 @@ type Fetcher struct {
 func NewFetcher(token string) (*Fetcher, error) {
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", API_EVENTS, nil)
+	req, err := http.NewRequest("GET", apiEvents, nil)
 	if err != nil {
 		return nil, err
 	}
