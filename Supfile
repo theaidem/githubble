@@ -1,0 +1,105 @@
+# Supfile
+---
+version: 0.4
+
+# Global environment variables
+env:
+  APP_NAME: githubble
+  REMOTE_USER: root
+  APP_PATH: /$REMOTE_USER/$APP_NAME
+
+networks:
+  local:
+    hosts:
+      - localhost
+  prod:
+    hosts:
+      - root@githubble.com
+
+commands:
+  bash:
+    desc: Interactive Bash on all hosts
+    stdin: true
+    run: bash
+
+  clear-logs:
+    desc: Delete all containers logs
+    run: find /var/lib/docker/containers/ -type f -name '*-json.log' -delete
+
+  logs:
+    desc: Interactive container Logs
+    run: cd ~/$APP_NAME && docker-compose logs
+
+  restart:
+    desc: Restart all containers
+    run: cd ~/$APP_NAME && docker-compose up --force-recreate -d
+
+  upload-docker-compose:
+    desc: Upload docker-compose file
+    upload:
+      - src: ./docker-compose.yaml
+        dst: $APP_PATH
+
+  prepare-backend:
+    desc: Build backend
+    local: cd ./backend && make build
+
+  upload-backend-docker:
+    desc: Upload backend Dockerfile
+    upload:
+      - src: ./backend/Dockerfile
+        dst: $APP_PATH
+
+  upload-backend-bin:
+    desc: Upload backend binary file
+    upload:
+      - src: ./backend/$APP_NAME
+        dst: $APP_PATH
+
+  prepare-frontend:
+    desc: Build frontend
+    local: cd ./frontend && npm run build
+
+  upload-frontend-dist:
+    desc: Upload frontend dist files
+    upload:
+      - src: ./frontend/dist
+        dst: $APP_PATH
+
+  upload-frontend-docker:
+    desc: Upload frontend Dockerfile
+    upload:
+      - src: ./frontend/Dockerfile
+        dst: $APP_PATH
+
+  upload-frontend-nginx:
+    desc: Upload frontend nginx conf
+    upload:
+      - src: ./frontend/nginx.conf
+        dst: $APP_PATH
+
+targets:
+  deploy-frontend:
+    - prepare-frontend
+    - upload-frontend-dist
+    - upload-frontend-docker
+    - upload-frontend-nginx
+
+  deploy-backend:
+    - prepare-backend
+    - upload-backend-bin
+    - upload-backend-docker
+
+  deploy-all:
+    - prepare-backend
+    - prepare-frontend
+
+    - upload-backend-bin
+    - upload-backend-docker
+
+    - upload-frontend-dist
+    - upload-frontend-docker
+    - upload-frontend-nginx
+
+    - upload-docker-compose
+    - restart
