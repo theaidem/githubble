@@ -10,8 +10,8 @@ var token string
 
 func main() {
 
-	sse := NewServer()
-	fetcher, err := NewFetcher(token)
+	sse := newServer()
+	fetcher, err := newFetcher(token)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -20,7 +20,7 @@ func main() {
 	go func() {
 
 		// Let's go ahead
-		fetcher.Start()
+		fetcher.start()
 
 		for {
 			payload := <-fetcher.payload

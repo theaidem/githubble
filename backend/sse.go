@@ -6,31 +6,31 @@ import (
 	"net/http"
 )
 
-type SSEBroker struct {
-	Notifier       chan *SSEPayload
-	newClients     chan chan *SSEPayload
-	closingClients chan chan *SSEPayload
-	clients        map[chan *SSEPayload]bool
+type sseBroker struct {
+	Notifier       chan *ssePayload
+	newClients     chan chan *ssePayload
+	closingClients chan chan *ssePayload
+	clients        map[chan *ssePayload]bool
 }
 
-type SSEPayload struct {
+type ssePayload struct {
 	Event string
 	Data  []byte
 }
 
-func NewServer() (s *SSEBroker) {
-	s = &SSEBroker{
-		Notifier:       make(chan *SSEPayload, 1),
-		newClients:     make(chan chan *SSEPayload),
-		closingClients: make(chan chan *SSEPayload),
-		clients:        make(map[chan *SSEPayload]bool),
+func newServer() (s *sseBroker) {
+	s = &sseBroker{
+		Notifier:       make(chan *ssePayload, 1),
+		newClients:     make(chan chan *ssePayload),
+		closingClients: make(chan chan *ssePayload),
+		clients:        make(map[chan *ssePayload]bool),
 	}
 
 	go s.listen()
 	return
 }
 
-func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (s *sseBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	flusher, ok := rw.(http.Flusher)
 
@@ -44,7 +44,7 @@ func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Connection", "keep-alive")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 
-	messageChan := make(chan *SSEPayload)
+	messageChan := make(chan *ssePayload)
 
 	s.newClients <- messageChan
 
@@ -67,15 +67,15 @@ func (s *SSEBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 }
 
-func (s *SSEBroker) sendOnline(n int) {
+func (s *sseBroker) sendOnline(n int) {
 	usersLen := fmt.Sprintf("%d", n)
-	s.Notifier <- &SSEPayload{
+	s.Notifier <- &ssePayload{
 		Event: "online",
 		Data:  []byte(usersLen),
 	}
 }
 
-func (s *SSEBroker) listen() {
+func (s *sseBroker) listen() {
 	for {
 		select {
 		case c := <-s.newClients:
@@ -89,7 +89,7 @@ func (s *SSEBroker) listen() {
 			log.Printf("Removed client. %d registered clients", len(s.clients))
 
 		case event := <-s.Notifier:
-			for clientMessageChan, _ := range s.clients {
+			for clientMessageChan := range s.clients {
 				clientMessageChan <- event
 			}
 		}

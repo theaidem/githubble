@@ -16,14 +16,14 @@ const (
 	apiEvents = "https://api.github.com/events"
 )
 
-type Fetcher struct {
+type fetcher struct {
 	client  *http.Client
 	req     *http.Request
-	payload chan *SSEPayload
-	lastId  string
+	payload chan *ssePayload
+	lastID  string
 }
 
-func NewFetcher(token string) (*Fetcher, error) {
+func newFetcher(token string) (*fetcher, error) {
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", apiEvents, nil)
@@ -36,9 +36,9 @@ func NewFetcher(token string) (*Fetcher, error) {
 		req.Header.Set("Authorization", tokenHeader)
 	}
 
-	payload := make(chan *SSEPayload, 1)
+	payload := make(chan *ssePayload, 1)
 
-	fetcher := &Fetcher{client, req, payload, ""}
+	fetcher := &fetcher{client, req, payload, ""}
 	err = fetcher.test()
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func NewFetcher(token string) (*Fetcher, error) {
 	return fetcher, nil
 }
 
-func (f *Fetcher) Start() {
+func (f *fetcher) start() {
 
 	go func() {
 
@@ -90,7 +90,7 @@ func (f *Fetcher) Start() {
 
 				for _, event := range events {
 
-					if event.Path("id").String() == f.lastId {
+					if event.Path("id").String() == f.lastID {
 						break
 					}
 
@@ -103,7 +103,7 @@ func (f *Fetcher) Start() {
 							event.Path("repo.name").Data())
 
 						// pew pew pew
-						f.payload <- &SSEPayload{
+						f.payload <- &ssePayload{
 							Event: "message",
 							Data:  event.Bytes(),
 						}
@@ -112,12 +112,12 @@ func (f *Fetcher) Start() {
 
 				}
 
-				f.payload <- &SSEPayload{
+				f.payload <- &ssePayload{
 					Event: "ratelimits",
 					Data:  []byte(fmt.Sprintf("%s/%s", rem, limit)),
 				}
 
-				f.lastId = jsonParsed.Path("id").Index(0).String()
+				f.lastID = jsonParsed.Path("id").Index(0).String()
 
 			case http.StatusForbidden:
 				log.Printf("(%s/%s) %s\n",
@@ -140,7 +140,7 @@ func (f *Fetcher) Start() {
 				}()
 
 				time.AfterFunc(tm.Sub(time.Now()), func() {
-					f.Start()
+					f.start()
 				})
 
 				return
@@ -155,7 +155,7 @@ func (f *Fetcher) Start() {
 	}()
 }
 
-func (f *Fetcher) test() error {
+func (f *fetcher) test() error {
 	resp, err := f.client.Do(f.req)
 	if err != nil {
 		return err
