@@ -4,14 +4,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
-var token string
+var tokens string
 
 func main() {
 
 	sse := newServer()
-	fetcher, err := newFetcher(token)
+	fetcher, err := newFetcher(strings.Split(tokens, ","))
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)

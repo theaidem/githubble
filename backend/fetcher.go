@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/ring"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -20,10 +21,13 @@ type fetcher struct {
 	client  *http.Client
 	req     *http.Request
 	payload chan *ssePayload
+	storage *storage
+	report  bool
+	tokens  *ring.Ring
 	lastID  string
 }
 
-func newFetcher(token string) (*fetcher, error) {
+func newFetcher(tokens []string) (*fetcher, error) {
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", apiEvents, nil)
@@ -31,14 +35,25 @@ func newFetcher(token string) (*fetcher, error) {
 		return nil, err
 	}
 
-	if len(token) > 0 {
-		tokenHeader := fmt.Sprintf("token %s", token)
+	tokenRing := ring.New(len(tokens))
+	if len(tokens) > 0 {
+		for _, t := range tokens {
+			tokenRing.Value = string(t)
+			tokenRing = tokenRing.Next()
+		}
+
+		tokenHeader := fmt.Sprintf("token %s", tokenRing.Value.(string))
 		req.Header.Set("Authorization", tokenHeader)
 	}
 
 	payload := make(chan *ssePayload, 1)
+	storage := newStorage()
+	report := false
+	if time.Now().Minute() <= 10 {
+		report = true
+	}
 
-	fetcher := &fetcher{client, req, payload, ""}
+	fetcher := &fetcher{client, req, payload, storage, report, tokenRing, ""}
 	err = fetcher.test()
 	if err != nil {
 		return nil, err
@@ -67,6 +82,7 @@ func (f *fetcher) start() {
 			rem, limit := resp.Header.Get("X-RateLimit-Remaining"), resp.Header.Get("X-RateLimit-Limit")
 
 			switch resp.StatusCode {
+
 			case http.StatusOK:
 
 				body, err := ioutil.ReadAll(resp.Body)
@@ -97,10 +113,21 @@ func (f *fetcher) start() {
 					switch event.Path("type").Data().(string) {
 					case "WatchEvent", "ForkEvent":
 
-						log.Printf("(%s/%s) %s: %s -> %s\n", rem, limit,
+						log.Printf("%s (%s/%s) %s: %s -> %s\n",
+							f.tokens.Value.(string)[:5], rem, limit,
 							event.Path("type").Data(),
 							event.Path("actor.login").Data(),
 							event.Path("repo.name").Data())
+
+						if f.report {
+							f.storage.actors.inc(
+								event.Path("actor.login").Data().(string),
+								event.Path("type").Data().(string))
+
+							f.storage.repos.inc(
+								event.Path("repo.name").Data().(string),
+								event.Path("type").Data().(string))
+						}
 
 						// pew pew pew
 						f.payload <- &ssePayload{
@@ -124,6 +151,14 @@ func (f *fetcher) start() {
 					resp.Header.Get("X-RateLimit-Remaining"),
 					resp.Header.Get("X-RateLimit-Limit"), resp.Status)
 
+				f.tokens = f.tokens.Next()
+				tokenHeader := fmt.Sprintf("token %s", f.tokens.Value.(string))
+				f.req.Header.Set("Authorization", tokenHeader)
+
+				if f.test() == nil {
+					continue
+				}
+
 				i, err := strconv.ParseInt(resp.Header.Get("X-RateLimit-Reset"), 10, 64)
 				if err != nil {
 					log.Println(err)
@@ -146,13 +181,41 @@ func (f *fetcher) start() {
 				return
 
 			default:
-				log.Printf("(%s/%s) %s\n",
+				log.Printf("%s (%s/%s) %s\n",
+					f.tokens.Value.(string)[:5],
 					resp.Header.Get("X-RateLimit-Remaining"),
 					resp.Header.Get("X-RateLimit-Limit"), resp.Status)
 
 			}
 		}
 	}()
+
+	go func() {
+		for t := range time.Tick(time.Second) {
+
+			if t.Minute() == 0 {
+
+				if !f.report {
+					f.report = true
+					continue
+				}
+
+				log.Printf("Actors: %#v/%#v\n", len(f.storage.actors.stars.data), len(f.storage.actors.forks.data))
+				log.Printf("Repos : %#v/%#v\n", len(f.storage.repos.stars.data), len(f.storage.repos.forks.data))
+
+				log.Printf("%#v\n", f.storage.actors.stars.top(1))
+				log.Printf("%#v\n", f.storage.actors.forks.top(1))
+
+				log.Printf("%#v\n", f.storage.repos.stars.top(1))
+				log.Printf("%#v\n", f.storage.repos.forks.top(1))
+
+				f.storage.actors.reset()
+				f.storage.repos.reset()
+			}
+
+		}
+	}()
+
 }
 
 func (f *fetcher) test() error {
