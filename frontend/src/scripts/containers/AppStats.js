@@ -10,14 +10,12 @@ class AppStats extends Component {
 	render() {
 		const { online, ratelimits } = this.props
 		return (
-			<div className="ui labels">
+			<div className="ui mini labels">
 				<div className="ui label">
 					<i className="users icon"></i>{ online }
-					<a className="detail">online now</a>
 				</div>
 				<div className="ui label">
 					<i className="wait icon"></i>{ ratelimits }
-					<a className="detail">limits</a>
 				</div>
 			</div>
 		)

@@ -114,7 +114,7 @@ func (f *fetcher) start() {
 					case "WatchEvent", "ForkEvent":
 
 						log.Printf("%s (%s/%s) %s: %s -> %s\n",
-							f.tokens.Value.(string)[:5], rem, limit,
+							f.tokens.Value.(string)[:6], rem, limit,
 							event.Path("type").Data(),
 							event.Path("actor.login").Data(),
 							event.Path("repo.name").Data())
@@ -141,7 +141,7 @@ func (f *fetcher) start() {
 
 				f.payload <- &ssePayload{
 					Event: "ratelimits",
-					Data:  []byte(fmt.Sprintf("%s/%s", rem, limit)),
+					Data:  []byte(fmt.Sprintf("%s/%s/%s", f.tokens.Value.(string)[:6], rem, limit)),
 				}
 
 				f.lastID = jsonParsed.Path("id").Index(0).String()
@@ -182,7 +182,7 @@ func (f *fetcher) start() {
 
 			default:
 				log.Printf("%s (%s/%s) %s\n",
-					f.tokens.Value.(string)[:5],
+					f.tokens.Value.(string)[:6],
 					resp.Header.Get("X-RateLimit-Remaining"),
 					resp.Header.Get("X-RateLimit-Limit"), resp.Status)
 
@@ -191,11 +191,12 @@ func (f *fetcher) start() {
 	}()
 
 	go func() {
-		for t := range time.Tick(time.Second) {
+		for now := range time.Tick(time.Second) {
 
-			if t.Minute() == 0 {
+			if now.Minute()%5 == 0 && now.Second() == 0 {
 
 				if !f.report {
+					log.Printf("Start report collector\n")
 					f.report = true
 					continue
 				}

@@ -28,11 +28,11 @@ commands:
 
   logs:
     desc: Interactive container Logs
-    run: cd ~/$APP_NAME && docker-compose logs
+    run: cd ~/$APP_NAME && docker-compose logs -f --tail=100
 
   restart:
-    desc: Restart all containers
-    run: cd ~/$APP_NAME && docker-compose up --force-recreate -d
+    desc: Rebuild and Restart all containers
+    run: cd ~/$APP_NAME && docker-compose up --build -d
 
   upload-docker-compose:
     desc: Upload docker-compose file
@@ -84,11 +84,13 @@ targets:
     - upload-frontend-dist
     - upload-frontend-docker
     - upload-frontend-nginx
+    - restart
 
   deploy-backend:
     - prepare-backend
     - upload-backend-bin
     - upload-backend-docker
+    - restart
 
   deploy-all:
     - prepare-backend
