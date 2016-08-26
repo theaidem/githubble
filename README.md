@@ -6,7 +6,7 @@ View github stars/forks in realtime
 
 ### Frontend
 
-[Redux](https://github.com/reactjs/redux), 
+[Redux](https://github.com/reactjs/redux),
 [react](https://github.com/facebook/react),
 [normalizr](https://github.com/gaearon/normalizr)
 
@@ -23,7 +23,7 @@ View github stars/forks in realtime
 
 Make sure you have [Golang](https://golang.org/) and [NodeJS](https://nodejs.org/) installed
 
-Clone the repo: 
+Clone the repo:
 
 ```bash
 git clone https://github.com/theaidem/githubble
@@ -35,17 +35,19 @@ Generate your personal [access token](https://github.com/settings/tokens) from G
 
 `<github_access_token>` is Your Personal [access token](https://github.com/settings/tokens) from Github
 
+Copy environment file
+
 ```bash
-go build -o githubble -ldflags "-X main.token=<github_access_token>" && ./githubble
+cp .env.example .env
 ```
 
-OR paste your token in `path/to/githubble/backend/Makefile`:
+and paste your token(s) in this file:
 
 ```
-APPNAME = githubble
-TOKEN = <github_access_token>
-...
+GITHUB_TOKENS = <github_access_token>
 ```
+
+if you want setup twitter posting, fill `TWITTER_` variables in .env file
 
 and run the commands:
 
