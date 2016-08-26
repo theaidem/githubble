@@ -1,8 +1,7 @@
 APPNAME = githubble
-TOKEN = 
 
 build: clean
-	@go build -o $(APPNAME) -ldflags "-X main.token=$(TOKEN)"
+	@go build -o $(APPNAME)
 	@echo build: OK!
 
 clean:

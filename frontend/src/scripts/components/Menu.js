@@ -3,7 +3,7 @@ import filter from 'lodash/collection/filter'
 import TopFilter from "../components/TopFilter"
 
 class Menu extends Component {
-	
+
 	constructor(props) {
 		super(props)
 	}
@@ -22,8 +22,8 @@ class Menu extends Component {
 						</div>
 						<div className="eight wide column">
 							<div className="item">
-								<TopFilter 
-									numOnPage={ numOnPage } eventsOnPage={ eventsOnPage } 
+								<TopFilter
+									numOnPage={ numOnPage } eventsOnPage={ eventsOnPage }
 									eventsFreeze={ eventsFreeze } isFrozen={ isFrozen } appReset={ appReset } />
 							</div>
 						</div>
@@ -61,7 +61,7 @@ class Menu extends Component {
 								</div>
 							</div>
 						</div>
-					</div>		
+					</div>
 				</div>
 			</div>
 		)

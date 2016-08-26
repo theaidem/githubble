@@ -1,8 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"sort"
 	"sync"
+
+	"github.com/ChimeraCoder/anaconda"
 )
 
 type statsMap struct {
@@ -75,11 +80,21 @@ func (s *stats) top(count int) pairList {
 }
 
 type storage struct {
+	twitter       *anaconda.TwitterApi
 	actors, repos statsMap
 }
 
 func newStorage() *storage {
+
+	anaconda.SetConsumerKey(os.Getenv("TWITTER_CONSUMER_KEY"))
+	anaconda.SetConsumerSecret(os.Getenv("TWITTER_CONSUMER_SECRET"))
+
+	twitter := anaconda.NewTwitterApi(
+		os.Getenv("TWITTER_ACCESS_TOKEN"),
+		os.Getenv("TWITTER_ACCESS_TOKEN_SECRET"))
+
 	return &storage{
+		twitter: twitter,
 		actors: statsMap{
 			stars: stats{data: make(map[string]int)},
 			forks: stats{data: make(map[string]int)},
@@ -89,4 +104,30 @@ func newStorage() *storage {
 			forks: stats{data: make(map[string]int)},
 		},
 	}
+}
+
+func (s *storage) postTweet() error {
+
+	bestStargazer := s.actors.stars.top(1)
+	bestStaredRepo := s.repos.stars.top(1)
+
+	actorLink := fmt.Sprintf("github.com/%s", bestStargazer[0].Key)
+	repoLink := fmt.Sprintf("github.com/%s", bestStaredRepo[0].Key)
+
+	actorContent := fmt.Sprintf("Best #github stargazer for last hour is %s, %d stars", actorLink, bestStargazer[0].Value)
+	repoContent := fmt.Sprintf("Most starred #github repo for last hour is %s, got %d stars", repoLink, bestStaredRepo[0].Value)
+
+	_, err := s.twitter.PostTweet(actorContent, nil)
+	if err != nil {
+		return err
+	}
+	log.Printf("bestStargazer: %#v\n", actorContent)
+
+	_, err = s.twitter.PostTweet(repoContent, nil)
+	if err != nil {
+		return err
+	}
+	log.Printf("bestStaredRepo: %#v\n", repoContent)
+
+	return nil
 }

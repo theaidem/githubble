@@ -65,7 +65,6 @@ func newFetcher(tokens []string) (*fetcher, error) {
 func (f *fetcher) start() {
 
 	go func() {
-
 		for {
 
 			resp, err := f.client.Do(f.req)
@@ -193,7 +192,7 @@ func (f *fetcher) start() {
 	go func() {
 		for now := range time.Tick(time.Second) {
 
-			if now.Minute()%5 == 0 && now.Second() == 0 {
+			if now.Minute() == 0 && now.Second() == 0 {
 
 				if !f.report {
 					log.Printf("Start report collector\n")
@@ -201,19 +200,14 @@ func (f *fetcher) start() {
 					continue
 				}
 
-				log.Printf("Actors: %#v/%#v\n", len(f.storage.actors.stars.data), len(f.storage.actors.forks.data))
-				log.Printf("Repos : %#v/%#v\n", len(f.storage.repos.stars.data), len(f.storage.repos.forks.data))
-
-				log.Printf("%#v\n", f.storage.actors.stars.top(1))
-				log.Printf("%#v\n", f.storage.actors.forks.top(1))
-
-				log.Printf("%#v\n", f.storage.repos.stars.top(1))
-				log.Printf("%#v\n", f.storage.repos.forks.top(1))
+				err := f.storage.postTweet()
+				if err != nil {
+					log.Printf("tweet error: %#v\n", err.Error())
+				}
 
 				f.storage.actors.reset()
 				f.storage.repos.reset()
 			}
-
 		}
 	}()
 
@@ -229,7 +223,7 @@ func (f *fetcher) test() error {
 
 	switch resp.StatusCode {
 	case http.StatusOK, http.StatusForbidden:
-		log.Printf("Available X-RateLimit: %s of %s\n", rem, limit)
+		log.Printf("%s Available X-RateLimit: %s of %s\n", f.tokens.Value.(string)[:5], rem, limit)
 	case http.StatusUnauthorized:
 		err := errors.New("Bad credentials")
 		return err

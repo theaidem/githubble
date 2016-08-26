@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
-var tokens string
-
 func main() {
+
+	tokens := os.Getenv("GITHUB_TOKENS")
 
 	sse := newServer()
 	fetcher, err := newFetcher(strings.Split(tokens, ","))
