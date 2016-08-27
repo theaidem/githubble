@@ -200,9 +200,11 @@ func (f *fetcher) start() {
 					continue
 				}
 
-				err := f.storage.postTweet()
-				if err != nil {
-					log.Printf("tweet error: %#v\n", err.Error())
+				if twitterPiblish() {
+					err := f.storage.postTweet()
+					if err != nil {
+						log.Printf("tweet error: %#v\n", err.Error())
+					}
 				}
 
 				f.storage.actors.reset()

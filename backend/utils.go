@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"sort"
+	"strconv"
 )
 
 var langs = map[string]string{
@@ -92,5 +95,13 @@ func repoTags(repo string, count int) (string, error) {
 	}
 
 	return tags, nil
+}
 
+func twitterPiblish() bool {
+	b, err := strconv.ParseBool(os.Getenv("TWITTER_PUBLISH"))
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+	return b
 }
