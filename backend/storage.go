@@ -28,17 +28,6 @@ func (s *statsMap) reset() {
 	s.forks.reset()
 }
 
-type pair struct {
-	Key   string
-	Value int
-}
-
-type pairList []pair
-
-func (p pairList) Len() int           { return len(p) }
-func (p pairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p pairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
-
 type stats struct {
 	data map[string]int
 	sync.Mutex
@@ -76,7 +65,6 @@ func (s *stats) top(count int) pairList {
 	}
 
 	return p
-
 }
 
 type storage struct {
@@ -114,10 +102,15 @@ func (s *storage) postTweet() error {
 	actorLink := fmt.Sprintf("github.com/%s", bestStargazer[0].Key)
 	repoLink := fmt.Sprintf("github.com/%s", bestStaredRepo[0].Key)
 
-	actorContent := fmt.Sprintf("Best #github stargazer for last hour is %s, %d stars", actorLink, bestStargazer[0].Value)
-	repoContent := fmt.Sprintf("Most starred #github repo for last hour is %s, got %d stars", repoLink, bestStaredRepo[0].Value)
+	tags, err := repoTags(bestStaredRepo[0].Key, 2)
+	if err != nil {
+		return err
+	}
 
-	_, err := s.twitter.PostTweet(actorContent, nil)
+	actorContent := fmt.Sprintf("Best #github stargazer for last hour is %s, %d stars", actorLink, bestStargazer[0].Value)
+	repoContent := fmt.Sprintf("Most starred #github repo for last hour is %s, got %d stars%s", repoLink, bestStaredRepo[0].Value, tags)
+
+	_, err = s.twitter.PostTweet(actorContent, nil)
 	if err != nil {
 		return err
 	}
