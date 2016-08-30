@@ -40,6 +40,17 @@ var langs = map[string]string{
 	"VimL":         "#viml",
 }
 
+var phrases = map[string][]string{
+	"bestStaredRepoReplies": []string{
+		"+%d in last hour",
+		"Wow! +%d stars in last hour again 👍",
+		"Best hourly repo again! +%d stars",
+		"Again most starred! +%d stars in hour",
+		"+%d stars in hour. Again Best hourly. Nice trending!",
+		"🙌 +%d stars in hour. Congrats!",
+	},
+}
+
 type pair struct {
 	Key   string
 	Value int

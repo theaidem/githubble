@@ -2,12 +2,18 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func main() {
 

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"math/rand"
+	"net/url"
 	"os"
 	"sort"
 	"sync"
@@ -67,9 +70,16 @@ func (s *stats) top(count int) pairList {
 	return p
 }
 
+type lastTweet struct {
+	name  string
+	num   int
+	tweet *anaconda.Tweet
+}
+
 type storage struct {
-	twitter       *anaconda.TwitterApi
-	actors, repos statsMap
+	twitter                     *anaconda.TwitterApi
+	lastBestRepo, lastBestActor *lastTweet
+	actors, repos               statsMap
 }
 
 func newStorage() *storage {
@@ -94,33 +104,77 @@ func newStorage() *storage {
 	}
 }
 
-func (s *storage) postTweet() error {
+func (s *storage) bestRepoTweet() error {
+
+	bestStaredRepo := s.repos.stars.top(1)
+	if bestStaredRepo == nil {
+		return errors.New("nothing to posts")
+	}
+
+	repo := bestStaredRepo[0]
+
+	if s.lastBestRepo != nil {
+		if s.lastBestRepo.name == repo.Key {
+			// again the same repo
+			text := phrases["bestStaredRepoReplies"][rand.Intn(len(phrases["bestStaredRepoReplies"])-1)]
+			content := fmt.Sprintf(text, repo.Value)
+
+			opts := url.Values{}
+			opts.Set("in_reply_to_status_id", s.lastBestRepo.tweet.IdStr)
+
+			_, err := s.twitter.PostTweet(content, opts)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	repoLink := fmt.Sprintf("github.com/%s", repo.Key)
+
+	tags, err := repoTags(repo.Key, 2)
+	if err != nil {
+		return err
+	}
+
+	repoContent := fmt.Sprintf("Most starred #github repo for last hour is %s, got %d stars%s", repoLink, repo.Value, tags)
+	tweet, err := s.twitter.PostTweet(repoContent, nil)
+	if err != nil {
+		return err
+	}
+
+	s.lastBestRepo = &lastTweet{
+		name:  repo.Key,
+		num:   repo.Value,
+		tweet: &tweet,
+	}
+
+	log.Printf("bestStaredRepo: %#v\n", repoContent)
+	return nil
+}
+
+func (s *storage) bestUserTweet() error {
 
 	bestStargazer := s.actors.stars.top(1)
-	bestStaredRepo := s.repos.stars.top(1)
+	if bestStargazer == nil {
+		return errors.New("nothing to posts")
+	}
 
-	actorLink := fmt.Sprintf("github.com/%s", bestStargazer[0].Key)
-	repoLink := fmt.Sprintf("github.com/%s", bestStaredRepo[0].Key)
+	actor := bestStargazer[0]
+	actorLink := fmt.Sprintf("github.com/%s", actor.Key)
+	actorContent := fmt.Sprintf("Best #github stargazer for last 3 hours is %s, %d stars", actorLink, actor.Value)
 
-	tags, err := repoTags(bestStaredRepo[0].Key, 2)
+	tweet, err := s.twitter.PostTweet(actorContent, nil)
 	if err != nil {
 		return err
 	}
 
-	actorContent := fmt.Sprintf("Best #github stargazer for last hour is %s, %d stars", actorLink, bestStargazer[0].Value)
-	repoContent := fmt.Sprintf("Most starred #github repo for last hour is %s, got %d stars%s", repoLink, bestStaredRepo[0].Value, tags)
-
-	_, err = s.twitter.PostTweet(actorContent, nil)
-	if err != nil {
-		return err
+	s.lastBestActor = &lastTweet{
+		name:  actor.Key,
+		num:   actor.Value,
+		tweet: &tweet,
 	}
+
 	log.Printf("bestStargazer: %#v\n", actorContent)
-
-	_, err = s.twitter.PostTweet(repoContent, nil)
-	if err != nil {
-		return err
-	}
-	log.Printf("bestStaredRepo: %#v\n", repoContent)
-
 	return nil
 }

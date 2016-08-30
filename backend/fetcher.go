@@ -201,15 +201,27 @@ func (f *fetcher) start() {
 				}
 
 				if twitterPiblish() {
-					err := f.storage.postTweet()
+					err := f.storage.bestRepoTweet()
 					if err != nil {
-						log.Printf("tweet error: %#v\n", err.Error())
+						log.Printf("bestRepoTweet error: %#v\n", err.Error())
+					}
+				}
+
+				f.storage.repos.reset()
+			}
+
+			if now.Minute() == 0 && now.Second() == 0 && now.Hour()%3 == 0 {
+
+				if twitterPiblish() {
+					err := f.storage.bestUserTweet()
+					if err != nil {
+						log.Printf("bestUserTweet error: %#v\n", err.Error())
 					}
 				}
 
 				f.storage.actors.reset()
-				f.storage.repos.reset()
 			}
+
 		}
 	}()
 
