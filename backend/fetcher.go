@@ -21,8 +21,7 @@ type fetcher struct {
 	client  *http.Client
 	req     *http.Request
 	payload chan *ssePayload
-	storage *storage
-	report  bool
+	store   *store
 	tokens  *ring.Ring
 	lastID  string
 }
@@ -47,13 +46,13 @@ func newFetcher(tokens []string) (*fetcher, error) {
 	}
 
 	payload := make(chan *ssePayload, 1)
-	storage := newStorage()
-	report := false
-	if time.Now().Minute() <= 10 {
-		report = true
+
+	store, err := newStore()
+	if err != nil {
+		return nil, err
 	}
 
-	fetcher := &fetcher{client, req, payload, storage, report, tokenRing, ""}
+	fetcher := &fetcher{client, req, payload, store, tokenRing, ""}
 	err = fetcher.test()
 	if err != nil {
 		return nil, err
@@ -109,8 +108,8 @@ func (f *fetcher) start() {
 						break
 					}
 
-					switch event.Path("type").Data().(string) {
-					case "WatchEvent", "ForkEvent":
+					switch eventType(event.Path("type").Data().(string)) {
+					case star, fork:
 
 						log.Printf("%s (%s/%s) %s: %s -> %s\n",
 							f.tokens.Value.(string)[:6], rem, limit,
@@ -118,14 +117,24 @@ func (f *fetcher) start() {
 							event.Path("actor.login").Data(),
 							event.Path("repo.name").Data())
 
-						if f.report {
-							f.storage.actors.inc(
-								event.Path("actor.login").Data().(string),
-								event.Path("type").Data().(string))
+						err = f.store.add(
+							eventType(event.Path("type").Data().(string)),
+							actor,
+							event.Path("actor.login").Data().(string),
+						)
 
-							f.storage.repos.inc(
-								event.Path("repo.name").Data().(string),
-								event.Path("type").Data().(string))
+						if err != nil {
+							log.Println(err)
+						}
+
+						err = f.store.add(
+							eventType(event.Path("type").Data().(string)),
+							repo,
+							event.Path("repo.name").Data().(string),
+						)
+
+						if err != nil {
+							log.Println(err)
 						}
 
 						// pew pew pew
@@ -194,32 +203,28 @@ func (f *fetcher) start() {
 
 			if now.Minute() == 0 && now.Second() == 0 {
 
-				if !f.report {
-					log.Printf("Start report collector\n")
-					f.report = true
-					continue
-				}
-
 				if twitterPiblish() {
-					err := f.storage.bestRepoTweet()
+					err := f.store.bestRepoTweet()
 					if err != nil {
 						log.Printf("bestRepoTweet error: %#v\n", err.Error())
 					}
 				}
 
-				f.storage.repos.reset()
+				f.store.clear(repo)
+
 			}
 
 			if now.Minute() == 0 && now.Second() == 0 && now.Hour()%3 == 0 {
 
 				if twitterPiblish() {
-					err := f.storage.bestUserTweet()
+					err := f.store.bestUserTweet()
 					if err != nil {
 						log.Printf("bestUserTweet error: %#v\n", err.Error())
 					}
 				}
 
-				f.storage.actors.reset()
+				f.store.clear(actor)
+
 			}
 
 		}
