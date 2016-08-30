@@ -93,11 +93,12 @@ func (s *store) add(event eventType, target targetType, name string) error {
 }
 
 func (s *store) top(event eventType, target targetType) *stat {
-	res := new(stat)
+	var res *stat
 	s.db.View(func(tx *buntdb.Tx) error {
 		tx.Descend("amounts", func(key, amount string) bool {
 			keyDetails := strings.Split(key, ":")
 			if eventType(keyDetails[1]) == event && targetType(keyDetails[2]) == target {
+				res = new(stat)
 				res.event = event
 				res.target = target
 				res.name = keyDetails[3]
@@ -126,7 +127,7 @@ func (s *store) clear(target targetType) error {
 }
 
 func (s *store) last(event eventType, target targetType) *lTweet {
-	last := new(lTweet)
+	var last *lTweet
 	s.db.View(func(tx *buntdb.Tx) error {
 		key := fmt.Sprintf("last:%s:%s", event, target)
 		val, err := tx.Get(key)
@@ -134,6 +135,7 @@ func (s *store) last(event eventType, target targetType) *lTweet {
 			return err
 		}
 
+		last = new(lTweet)
 		err = json.Unmarshal([]byte(val), last)
 		if err != nil {
 			return err
