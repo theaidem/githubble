@@ -1,6 +1,6 @@
 # [GitHubble](http://githubble.com/)
 
-View github stars/forks in realtime
+View github stars / forks in real-time, and follow me on [twitter](https://twitter.com/githubble)
 
 ## What Uses?
 

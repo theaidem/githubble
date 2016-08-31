@@ -35,5 +35,6 @@ node_modules
 
 # Some
 backend/githubble
-backend/.notes
-backend/.env
+*.notes
+*.env
+*.db
