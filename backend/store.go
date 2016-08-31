@@ -31,7 +31,7 @@ type stat struct {
 	name, amount string
 }
 
-type lTweet struct {
+type lastTweet struct {
 	data  *stat
 	tweet *anaconda.Tweet
 }
@@ -92,9 +92,9 @@ func (s *store) add(event eventType, target targetType, name string) error {
 	return err
 }
 
-func (s *store) top(event eventType, target targetType) *stat {
+func (s *store) top(event eventType, target targetType) (*stat, error) {
 	var res *stat
-	s.db.View(func(tx *buntdb.Tx) error {
+	err := s.db.View(func(tx *buntdb.Tx) error {
 		tx.Descend("amounts", func(key, amount string) bool {
 			keyDetails := strings.Split(key, ":")
 			if eventType(keyDetails[1]) == event && targetType(keyDetails[2]) == target {
@@ -109,44 +109,42 @@ func (s *store) top(event eventType, target targetType) *stat {
 		})
 		return nil
 	})
-	return res
+	return res, err
 }
 
 func (s *store) clear(target targetType) error {
 	err := s.db.Update(func(tx *buntdb.Tx) error {
-		tx.Descend("amounts", func(key, amount string) bool {
+		return tx.Descend("amounts", func(key, amount string) bool {
 			keyDetails := strings.Split(key, ":")
-			if targetType(keyDetails[2]) == target {
-				tx.Delete(key)
+			if len(keyDetails) > 2 {
+				if targetType(keyDetails[2]) == target {
+					_, err := tx.Delete(key)
+					log.Println(err)
+				}
 			}
 			return true
 		})
-		return nil
 	})
 	return err
 }
 
-func (s *store) last(event eventType, target targetType) *lTweet {
-	var last *lTweet
-	s.db.View(func(tx *buntdb.Tx) error {
+func (s *store) last(event eventType, target targetType) (*lastTweet, error) {
+	var last *lastTweet
+	err := s.db.View(func(tx *buntdb.Tx) error {
 		key := fmt.Sprintf("last:%s:%s", event, target)
 		val, err := tx.Get(key)
-		if err != nil && err != buntdb.ErrNotFound {
-			return err
-		}
-
-		last = new(lTweet)
-		err = json.Unmarshal([]byte(val), last)
 		if err != nil {
 			return err
 		}
 
-		return nil
+		last = new(lastTweet)
+		return json.Unmarshal([]byte(val), last)
+
 	})
-	return last
+	return last, err
 }
 
-func (s *store) setLast(last *lTweet) error {
+func (s *store) setLast(last *lastTweet) error {
 	err := s.db.Update(func(tx *buntdb.Tx) error {
 		key := fmt.Sprintf("last:%s:%s", last.data.event, last.data.target)
 
@@ -163,12 +161,18 @@ func (s *store) setLast(last *lTweet) error {
 
 func (s *store) bestRepoTweet() error {
 
-	theRepo := s.top(star, repo)
+	theRepo, err := s.top(star, repo)
+	if err != nil {
+		return err
+	}
 	if theRepo == nil {
 		return errors.New("nothing to posts")
 	}
 
-	last := s.last(star, repo)
+	last, err := s.last(star, repo)
+	if err != nil && err != buntdb.ErrNotFound {
+		return err
+	}
 
 	if last != nil {
 		if last.data.name == theRepo.name {
@@ -179,7 +183,7 @@ func (s *store) bestRepoTweet() error {
 			opts := url.Values{}
 			opts.Set("in_reply_to_status_id", last.tweet.IdStr)
 
-			_, err := s.twitter.PostTweet(content, opts)
+			_, err = s.twitter.PostTweet(content, opts)
 			if err != nil {
 				return err
 			}
@@ -199,23 +203,21 @@ func (s *store) bestRepoTweet() error {
 		return err
 	}
 
-	lastBestRepo := &lTweet{
+	lastBestRepo := &lastTweet{
 		data:  theRepo,
 		tweet: &tweet,
 	}
 
-	err = s.setLast(lastBestRepo)
-	if err != nil {
-		return err
-	}
-
 	log.Printf("bestStaredRepo: %#v\n", repoContent)
-	return nil
+	return s.setLast(lastBestRepo)
 }
 
 func (s *store) bestUserTweet() error {
 
-	theActor := s.top(star, actor)
+	theActor, err := s.top(star, actor)
+	if err != nil {
+		return err
+	}
 	if theActor == nil {
 		return errors.New("nothing to posts")
 	}
@@ -228,16 +230,11 @@ func (s *store) bestUserTweet() error {
 		return err
 	}
 
-	lastBestActor := &lTweet{
+	lastBestActor := &lastTweet{
 		data:  theActor,
 		tweet: &tweet,
 	}
 
-	err = s.setLast(lastBestActor)
-	if err != nil {
-		return err
-	}
-
 	log.Printf("bestStargazer: %#v\n", actorContent)
-	return nil
+	return s.setLast(lastBestActor)
 }

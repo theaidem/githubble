@@ -210,7 +210,10 @@ func (f *fetcher) start() {
 					}
 				}
 
-				f.store.clear(repo)
+				err := f.store.clear(repo)
+				if err != nil {
+					log.Printf("repo clear error: %#v\n", err.Error())
+				}
 
 			}
 
@@ -223,7 +226,10 @@ func (f *fetcher) start() {
 					}
 				}
 
-				f.store.clear(actor)
+				err := f.store.clear(actor)
+				if err != nil {
+					log.Printf("actor clear error: %#v\n", err.Error())
+				}
 
 			}
 
