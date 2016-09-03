@@ -1,9 +1,7 @@
 FROM ubuntu
 MAINTAINER Kokorin Max "kokorin.max@gmail.com"
 
-RUN apt-get install -y ca-certificates
-COPY githubble /app/
-COPY .env /app/
+RUN apt-get update && apt-get install -y ca-certificates
 WORKDIR /app
 
 EXPOSE 3000

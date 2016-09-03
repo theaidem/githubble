@@ -114,22 +114,35 @@ func (s *store) top(event eventType, target targetType) (*stat, error) {
 
 func (s *store) clear(target targetType) error {
 	err := s.db.Update(func(tx *buntdb.Tx) error {
-		return tx.Descend("amounts", func(key, amount string) bool {
+		var delkeys []string
+		err := tx.Descend("amounts", func(key, amount string) bool {
 			keyDetails := strings.Split(key, ":")
 			if len(keyDetails) > 2 {
 				if targetType(keyDetails[2]) == target {
-					_, err := tx.Delete(key)
-					log.Println(err)
+					delkeys = append(delkeys, key)
 				}
 			}
 			return true
 		})
+
+		if err != nil {
+			return err
+		}
+
+		for _, key := range delkeys {
+			_, err = tx.Delete(key)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 	return err
 }
 
 func (s *store) last(event eventType, target targetType) (*lastTweet, error) {
-	var last *lastTweet
+	last := new(lastTweet)
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		key := fmt.Sprintf("last:%s:%s", event, target)
 		val, err := tx.Get(key)
@@ -137,7 +150,6 @@ func (s *store) last(event eventType, target targetType) (*lastTweet, error) {
 			return err
 		}
 
-		last = new(lastTweet)
 		return json.Unmarshal([]byte(val), last)
 
 	})
@@ -174,7 +186,10 @@ func (s *store) bestRepoTweet() error {
 		return err
 	}
 
-	if last != nil {
+	log.Printf("%#v\n", last)
+	log.Printf("%#v\n", theRepo)
+
+	if last.data != nil {
 		if last.data.name == theRepo.name {
 			// again the same repo
 			text := phrases["bestStaredRepoReplies"][rand.Intn(len(phrases["bestStaredRepoReplies"])-1)]

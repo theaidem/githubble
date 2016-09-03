@@ -6,5 +6,7 @@ frontend:
     - "80:80"
 backend:
     build: ./backend
+    volumes:
+      - ./backend:/app
     ports:
       - "3000:3000"
