@@ -58,8 +58,8 @@ export function doAppInit() {
 			const state = e.currentTarget.readyState
 			if (state == EventSource.CONNECTING) {
 				dispatch(appInitFailure(`Connection error, reconnecting...`))
-			} else {
-				dispatch(appInitFailure(`Connection error, ${state}`))
+			} else if (state == EventSource.CLOSED) {
+				dispatch(appInitFailure(`Connection error, state is closed.`))
 			}
 		}
 

@@ -19,7 +19,6 @@ func main() {
 
 	tokens := os.Getenv("GITHUB_TOKENS")
 
-	sse := newServer()
 	fetcher, err := newFetcher(strings.Split(tokens, ","))
 	if err != nil {
 		log.Println(err)
@@ -33,9 +32,9 @@ func main() {
 
 		for {
 			payload := <-fetcher.payload
-			sse.Notifier <- payload
+			broker().Notifier <- payload
 		}
 	}()
 
-	log.Fatal("HTTP server error: ", http.ListenAndServe("0.0.0.0:3000", sse))
+	log.Fatal("HTTP server error: ", http.ListenAndServe("0.0.0.0:3000", broker()))
 }

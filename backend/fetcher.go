@@ -14,14 +14,17 @@ import (
 )
 
 const (
-	apiEvents = "https://api.github.com/events"
+	apiEvents           = "https://api.github.com/events"
+	star      eventType = "WatchEvent"
+	fork                = "ForkEvent"
 )
+
+type eventType string
 
 type fetcher struct {
 	client  *http.Client
 	req     *http.Request
 	payload chan *ssePayload
-	store   *store
 	tokens  *ring.Ring
 	lastID  string
 }
@@ -47,12 +50,7 @@ func newFetcher(tokens []string) (*fetcher, error) {
 
 	payload := make(chan *ssePayload, 1)
 
-	store, err := newStore()
-	if err != nil {
-		return nil, err
-	}
-
-	fetcher := &fetcher{client, req, payload, store, tokenRing, ""}
+	fetcher := &fetcher{client, req, payload, tokenRing, ""}
 	err = fetcher.test()
 	if err != nil {
 		return nil, err
@@ -65,6 +63,10 @@ func (f *fetcher) start() {
 
 	go func() {
 		for {
+
+			if len(broker().Clients()) == 0 {
+				continue
+			}
 
 			resp, err := f.client.Do(f.req)
 			if err != nil {
@@ -116,26 +118,6 @@ func (f *fetcher) start() {
 							event.Path("type").Data(),
 							event.Path("actor.login").Data(),
 							event.Path("repo.name").Data())
-
-						err = f.store.add(
-							eventType(event.Path("type").Data().(string)),
-							actor,
-							event.Path("actor.login").Data().(string),
-						)
-
-						if err != nil {
-							log.Println(err)
-						}
-
-						err = f.store.add(
-							eventType(event.Path("type").Data().(string)),
-							repo,
-							event.Path("repo.name").Data().(string),
-						)
-
-						if err != nil {
-							log.Println(err)
-						}
 
 						// pew pew pew
 						f.payload <- &ssePayload{
@@ -197,45 +179,6 @@ func (f *fetcher) start() {
 			}
 		}
 	}()
-
-	go func() {
-		for now := range time.Tick(time.Second) {
-
-			if now.Minute() == 0 && now.Second() == 0 {
-
-				if twitterPiblish() {
-					err := f.store.bestRepoTweet()
-					if err != nil {
-						log.Printf("bestRepoTweet error: %#v\n", err.Error())
-					}
-				}
-
-				err := f.store.clear(repo)
-				if err != nil {
-					log.Printf("repo clear error: %#v\n", err.Error())
-				}
-
-			}
-
-			if now.Minute() == 0 && now.Second() == 0 && now.Hour()%3 == 0 {
-
-				if twitterPiblish() {
-					err := f.store.bestUserTweet()
-					if err != nil {
-						log.Printf("bestUserTweet error: %#v\n", err.Error())
-					}
-				}
-
-				err := f.store.clear(actor)
-				if err != nil {
-					log.Printf("actor clear error: %#v\n", err.Error())
-				}
-
-			}
-
-		}
-	}()
-
 }
 
 func (f *fetcher) test() error {

@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
+)
+
+var (
+	once     sync.Once
+	instance *sseBroker
 )
 
 type sseBroker struct {
@@ -18,16 +24,20 @@ type ssePayload struct {
 	Data  []byte
 }
 
-func newServer() (s *sseBroker) {
-	s = &sseBroker{
-		Notifier:       make(chan *ssePayload, 1),
-		newClients:     make(chan chan *ssePayload),
-		closingClients: make(chan chan *ssePayload),
-		clients:        make(map[chan *ssePayload]bool),
-	}
+func broker() *sseBroker {
+	once.Do(func() {
+		instance = &sseBroker{
+			Notifier:       make(chan *ssePayload, 1),
+			newClients:     make(chan chan *ssePayload),
+			closingClients: make(chan chan *ssePayload),
+			clients:        make(map[chan *ssePayload]bool),
+		}
 
-	go s.listen()
-	return
+		go instance.listen()
+
+	})
+
+	return instance
 }
 
 func (s *sseBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -64,7 +74,6 @@ func (s *sseBroker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(rw, "event: %s\ndata: %s\n\n", message.Event, message.Data)
 		flusher.Flush()
 	}
-
 }
 
 func (s *sseBroker) sendOnline(n int) {
@@ -73,6 +82,10 @@ func (s *sseBroker) sendOnline(n int) {
 		Event: "online",
 		Data:  []byte(usersLen),
 	}
+}
+
+func (s *sseBroker) Clients() map[chan *ssePayload]bool {
+	return s.clients
 }
 
 func (s *sseBroker) listen() {
