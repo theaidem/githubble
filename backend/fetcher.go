@@ -65,12 +65,14 @@ func (f *fetcher) start() {
 		for {
 
 			if len(broker().Clients()) == 0 {
+				time.Sleep(time.Second)
 				continue
 			}
 
 			resp, err := f.client.Do(f.req)
 			if err != nil {
 				log.Println(err)
+				time.Sleep(time.Second)
 				continue
 			}
 
