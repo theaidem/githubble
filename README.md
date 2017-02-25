@@ -1,6 +1,6 @@
 # [GitHubble](http://githubble.com/)
 
-View github stars / forks in real-time, and follow me on [twitter](https://twitter.com/githubble)
+View github stars / forks in real-time
 
 ## What Uses?
 
@@ -46,8 +46,6 @@ and paste your token(s) in this file:
 ```
 GITHUB_TOKENS = <github_access_token>
 ```
-
-if you want setup twitter posting, fill `TWITTER_` variables in .env file
 
 and run the commands:
 
