@@ -5,9 +5,9 @@ import Menu from "../components/Menu"
 import Events from "../components/Events"
 import Stats from "../components/Stats"
 import EventView from "../components/EventView"
-import take from 'lodash/array/take'
-import indexOf from 'lodash/array/indexOf'
-import sortByOrder from 'lodash/collection/sortByOrder'
+import take from 'lodash/take'
+import indexOf from 'lodash/indexOf'
+import sortByOrder from 'lodash/sortBy'
 import { eventsOnPage, eventView, eventsFreeze } from "../actions/event"
 import { appReset } from "../actions/app"
 

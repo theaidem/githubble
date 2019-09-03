@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jeffail/gabs"
+	gabs "github.com/Jeffail/gabs/v2"
 )
 
 const (
@@ -100,11 +100,7 @@ func (f *fetcher) start() {
 					continue
 				}
 
-				events, err := jsonParsed.Children()
-				if err != nil {
-					log.Println(err)
-					continue
-				}
+				events := jsonParsed.Children()
 
 				for _, event := range events {
 

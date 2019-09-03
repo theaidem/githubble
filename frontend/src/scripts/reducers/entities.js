@@ -1,6 +1,4 @@
-import merge from 'lodash/object/merge'
-import keys from 'lodash/object/keys'
-import take from 'lodash/array/take'
+import merge from 'lodash/merge'
 import { EVENT_RECEIVE } from "../constants/actions"
 
 const initState = { 

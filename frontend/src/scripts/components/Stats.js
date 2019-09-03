@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import filter from 'lodash/collection/filter'
 import SessionTime from "./SessionTime"
 import AppStats from "../containers/AppStats"
 

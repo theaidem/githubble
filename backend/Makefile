@@ -1,7 +1,7 @@
 APPNAME = githubble
 
 build: clean
-	@go build -o $(APPNAME)
+	@GOOS=linux GOARCH=amd64 go build -o $(APPNAME)
 	@echo build: OK!
 
 clean:

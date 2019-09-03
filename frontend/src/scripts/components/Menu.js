@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import filter from 'lodash/collection/filter'
+import filter from 'lodash/filter'
 import TopFilter from "../components/TopFilter"
 
 class Menu extends Component {

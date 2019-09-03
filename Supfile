@@ -12,9 +12,12 @@ networks:
   local:
     hosts:
       - localhost
-  prod:
+  prod.com:
     hosts:
       - root@githubble.com
+  prod.pro:
+    hosts:
+      - root@githubble.pro
 
 commands:
   bash:
