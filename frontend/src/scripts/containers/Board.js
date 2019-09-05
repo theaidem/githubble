@@ -7,7 +7,7 @@ import Stats from "../components/Stats"
 import EventView from "../components/EventView"
 import take from 'lodash/take'
 import indexOf from 'lodash/indexOf'
-import sortByOrder from 'lodash/sortBy'
+import sortBy from 'lodash/sortBy'
 import { eventsOnPage, eventView, eventsFreeze } from "../actions/event"
 import { appReset } from "../actions/app"
 
@@ -18,7 +18,8 @@ class Board extends Component {
 	}
 
 	render() {
-		const { events, actors, repos, numOnPage, eventsOnPage, eventView, eventsFreeze, isFrozen, appReset, started, eventIds,
+		const { events, actors, repos, numOnPage, eventsOnPage, eventView, 
+		eventsFreeze, isFrozen, appReset, started, eventIds,
 		eventViewerNext, eventViewerCurrent, eventViewerPrev,
 		bestStargazers, bestForkers,
 		mostStarred, mostForked } = this.props
@@ -91,21 +92,21 @@ Board.propTypes = {
 
 function mapStateToProps(state) {
 
-	let bestStargazers = sortByOrder(state.reports.actors, ((a)=>
+	let bestStargazers = sortBy(state.reports.actors, ((a)=>
 		a.stars.length
-	), ['desc'])
+	)).reverse()
 
-	let bestForkers = sortByOrder(state.reports.actors, ((a)=>
+	let bestForkers = sortBy(state.reports.actors, ((a)=>
 		a.forks.length
-	), ['desc'])
+	)).reverse()
 
-	let mostStarred = sortByOrder(state.reports.repos, ((r)=>
+	let mostStarred = sortBy(state.reports.repos, ((r)=>
 		r.stars.length
-	), ['desc'])
+	)).reverse()
 
-	let mostForked = sortByOrder(state.reports.repos, ((r)=>
+	let mostForked = sortBy(state.reports.repos, ((r)=>
 		r.forks.length
-	), ['desc'])
+	)).reverse()
 
 	let next = null
 	let prev = null
