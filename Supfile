@@ -45,7 +45,7 @@ commands:
 
   prepare-backend:
     desc: Build backend
-    local: cd ./backend && make build
+    local: cd ./backend && make build.linux
 
   upload-backend-docker:
     desc: Upload backend Dockerfile
