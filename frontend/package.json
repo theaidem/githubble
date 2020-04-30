@@ -13,7 +13,7 @@
   "author": "Max Kokorin",
   "license": "MIT",
   "dependencies": {
-    "jquery": "^2.1.4",
+    "jquery": "^3.5.0",
     "moment": "^2.11.1",
     "normalizr": "^1.4.0",
     "octicons": "^3.3.0",
