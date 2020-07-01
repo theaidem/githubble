@@ -13,7 +13,7 @@ class Events extends Component {
 	}
 
 	render() {
-		const { eventIds, events, actors, repos, eventView, isFrozen } = this.props
+		const { eventIds, events, actors, repos, eventView } = this.props
 		return (
 			<div className="ui divided events-list selection list">
 				{eventIds.map((id) => {

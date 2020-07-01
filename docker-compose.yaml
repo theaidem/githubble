@@ -1,11 +1,13 @@
 frontend:
   build: ./frontend
+  restart: always
   links:
     - backend:backend
   ports:
     - "80:80"
 backend:
     build: ./backend
+    restart: always
     volumes:
       - ./backend:/app
     ports:
