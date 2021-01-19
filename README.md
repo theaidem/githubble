@@ -1,4 +1,4 @@
-# [GitHubble](http://githubble.com/)
+# [GitHubble](http://theaidem.github.io/githubble/)
 
 View github stars / forks in real-time
 
