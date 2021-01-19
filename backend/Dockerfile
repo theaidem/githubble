@@ -1,8 +1,7 @@
-FROM ubuntu
-MAINTAINER Kokorin Max "kokorin.max@gmail.com"
-
-RUN apt-get update && apt-get install -y ca-certificates
+FROM alpine:3.10
+RUN apk add -U --no-cache ca-certificates
 WORKDIR /app
-
-EXPOSE 3000
-ENTRYPOINT ["./githubble"]
+ADD githubble /app
+ADD .env /app
+EXPOSE 3003
+CMD ./githubble

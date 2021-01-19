@@ -36,5 +36,5 @@ func main() {
 		}
 	}()
 
-	log.Fatal("HTTP server error: ", http.ListenAndServe("0.0.0.0:3000", broker()))
+	log.Fatal("HTTP server error: ", http.ListenAndServe("0.0.0.0:3003", broker()))
 }

@@ -6,7 +6,7 @@ version: 0.4
 env:
   APP_NAME: githubble
   REMOTE_USER: root
-  APP_PATH: /$REMOTE_USER/$APP_NAME
+  APP_PATH: /$REMOTE_USER/projects/$APP_NAME
 
 networks:
   local:
@@ -18,6 +18,9 @@ networks:
   prod.pro:
     hosts:
       - root@githubble.pro
+  prod.raw:
+    hosts:
+      - root@194.61.1.82
 
 commands:
   bash:
@@ -87,13 +90,11 @@ targets:
     - upload-frontend-dist
     - upload-frontend-docker
     - upload-frontend-nginx
-    - restart
 
   deploy-backend:
     - prepare-backend
     - upload-backend-bin
     - upload-backend-docker
-    - restart
 
   deploy-all:
     - prepare-backend

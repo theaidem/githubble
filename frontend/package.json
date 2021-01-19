@@ -8,6 +8,7 @@
     "build:webpack": "NODE_ENV=production ./node_modules/.bin/webpack --config webpack.config.prod.js",
     "build": "npm run clean && npm run build:webpack",
     "start": "./node_modules/.bin/webpack-dev-server --config webpack.config.dev.js",
+    "deploy": "npm run build && gh-pages -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Max Kokorin",
@@ -58,6 +59,7 @@
     "extract-text-webpack-plugin": "^0.9.1",
     "file-loader": "^0.8.4",
     "html-webpack-plugin": "^1.6.2",
+    "gh-pages": "^3.1.0",
     "rimraf": "^2.5.2",
     "style-loader": "^0.13.0",
     "webpack": "^1.12.6",
