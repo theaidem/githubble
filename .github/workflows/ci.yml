@@ -50,7 +50,7 @@ jobs:
           cache-dependency-path: backend/go.mod
       - uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.5.0
+          version: v2.15.0
           working-directory: backend
 
   frontend:
