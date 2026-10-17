@@ -1,5 +1,11 @@
 # GitHubble
 
+<p align="center">
+  <img src="assets/githubble-space.jpg" alt="Кот-астронавт, космический телескоп и звёзды" width="600">
+</p>
+
+Live version: https://githubble.root.sx/#overview
+
 Live dashboard for public GitHub stars and forks. Go polls the GitHub public
 events API and broadcasts WatchEvent/ForkEvent via SSE. Next.js streams those
 events through a same-origin route into a React dashboard with session stats,
@@ -57,7 +63,3 @@ not include token values or event payloads.
 cd backend && go test -race ./... && go vet ./...
 cd frontend && npm test && npm run typecheck && npm run build
 ```
-
-GitHub Actions runs these checks on pull requests and pushes to `master` or
-`rewrite-modern`, plus Go lint/vulnerability scanning, npm audit, and both
-Docker builds. No GitHub API token is needed for CI; images are not published.

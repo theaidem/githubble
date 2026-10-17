@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Do not interrupt a production deployment when another commit is pushed.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   go:
@@ -79,3 +80,66 @@ jobs:
       - uses: actions/checkout@v7
       - run: docker build -t githubble-backend:ci ./backend
       - run: docker build -t githubble-frontend:ci ./frontend
+
+  deploy:
+    name: Deploy to server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [go, go-lint, frontend, docker]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -eu
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS DEPLOY_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "Missing deployment setting: $name" >&2
+              exit 1
+            fi
+          done
+          if [[ ! "$DEPLOY_PATH" =~ ^/[a-zA-Z0-9_./-]+$ || "$DEPLOY_PATH" == *..* || "$DEPLOY_PATH" == / ]]; then
+            echo 'DEPLOY_PATH must be an absolute path without spaces or ..' >&2
+            exit 1
+          fi
+          install -m 700 -d "$RUNNER_TEMP/deploy-ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/deploy-ssh/key"
+          chmod 600 "$RUNNER_TEMP/deploy-ssh/key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/deploy-ssh/known_hosts"
+      - name: Upload and start release
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          ssh_options=(-i "$RUNNER_TEMP/deploy-ssh/key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/deploy-ssh/known_hosts")
+          release="$DEPLOY_PATH/releases/$GITHUB_SHA"
+          git archive --format=tar HEAD > "$RUNNER_TEMP/release.tar"
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -se -- "$DEPLOY_PATH" "$GITHUB_SHA" <<'REMOTE'
+          set -euo pipefail
+          deploy_path=$1
+          sha=$2
+          test -f "$deploy_path/.env" || { echo "Missing $deploy_path/.env on server" >&2; exit 1; }
+          docker compose version >/dev/null
+          mkdir -p "$deploy_path/releases/$sha"
+          REMOTE
+          scp "${ssh_options[@]}" "$RUNNER_TEMP/release.tar" "$DEPLOY_USER@$DEPLOY_HOST:$release/release.tar"
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -se -- "$DEPLOY_PATH" "$GITHUB_SHA" <<'REMOTE'
+          set -euo pipefail
+          deploy_path=$1
+          sha=$2
+          release="$deploy_path/releases/$sha"
+          tar -xf "$release/release.tar" -C "$release"
+          rm "$release/release.tar"
+          docker compose --project-name githubble --env-file "$deploy_path/.env" -f "$release/docker-compose.yaml" up -d --build --remove-orphans
+          REMOTE
