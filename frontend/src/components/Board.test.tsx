@@ -40,5 +40,26 @@ it("renders an incoming star, updates stats and opens the selected event", () =>
   const profileAvatar = screen.getByRole("region", { name: "Selected event" }).querySelector("img.large-avatar");
   expect(profileAvatar).toHaveAttribute("width", "280");
   expect(profileAvatar).toHaveAttribute("height", "280");
+  expect(screen.getByText("Most starred repos").parentElement).not.toHaveTextContent("octocat/hello");
+  const second = normalizeEvent({ id: "124", type: "WatchEvent", created_at: "2026-10-16T12:00:01Z",
+    actor: { id: 7, login: "octocat" }, repo: { id: 8, name: "octocat/hello" } });
+  if (!second) throw new Error("invalid test event");
+  act(() => useStore.getState().receiveEvent(second));
+  expect(screen.getByText("Top stargazers").parentElement).toHaveTextContent("octocat");
   expect(screen.getByText("Most starred repos").parentElement).toHaveTextContent("octocat/hello");
+});
+
+it("only ranks repeat forkers and forked repos", () => {
+  render(<Board />);
+  const fork = (id: string) => normalizeEvent({ id, type: "ForkEvent", created_at: "2026-10-16T12:00:00Z",
+    actor: { id: 9, login: "forker" }, repo: { id: 10, name: "owner/repo" } });
+  const first = fork("1");
+  const second = fork("2");
+  if (!first || !second) throw new Error("invalid test event");
+  act(() => useStore.getState().receiveEvent(first));
+  expect(screen.getByText("Top forkers").parentElement?.querySelector("ol")).not.toHaveTextContent("forker");
+  expect(screen.getByText("Most forked repos").parentElement?.querySelector("ol")).not.toHaveTextContent("owner/repo");
+  act(() => useStore.getState().receiveEvent(second));
+  expect(screen.getByText("Top forkers").parentElement?.querySelector("ol")).toHaveTextContent("forker");
+  expect(screen.getByText("Most forked repos").parentElement?.querySelector("ol")).toHaveTextContent("owner/repo");
 });
