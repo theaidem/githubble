@@ -22,7 +22,6 @@ interface BoardState {
   ratelimits: string | null;
   lastCheckedAt: number;
   queued: number;
-  resetVersion: number;
   viewingEvent: string | null;
   numOnPage: number;
   isFrozen: boolean;
@@ -50,7 +49,6 @@ export const useStore = create<BoardState>((set) => ({
   ratelimits: null,
   lastCheckedAt: 0,
   queued: 0,
-  resetVersion: 0,
   viewingEvent: null,
   numOnPage: 30,
   isFrozen: false,
@@ -90,9 +88,8 @@ export const useStore = create<BoardState>((set) => ({
     isFrozen,
     frozenIds: isFrozen ? state.entities.eventIds.slice(0, state.numOnPage) : [],
   })),
-  reset: () => set((state) => ({
+  reset: () => set({
     entities: emptyEntities(), reports: emptyReports(), viewingEvent: null,
-    numOnPage: 30, isFrozen: false, frozenIds: [], startedAt: 0, queued: 0,
-    resetVersion: state.resetVersion + 1,
-  })),
+    numOnPage: 30, isFrozen: false, frozenIds: [], startedAt: 0,
+  }),
 }));

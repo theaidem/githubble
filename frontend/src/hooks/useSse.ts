@@ -17,12 +17,6 @@ export function useSse() {
       },
       (size) => useStore.getState().setQueued(size),
     );
-    const unsubscribe = useStore.subscribe((state, previous) => {
-      if (state.resetVersion !== previous.resetVersion) {
-        buffered.clear();
-        playback.clear();
-      }
-    });
     const source = new EventSource(CONFIG.sseUrl);
     source.onopen = () => useStore.getState().setConnected();
     source.onerror = () => useStore.getState().setError("Connection lost. Reconnecting…");
@@ -51,7 +45,6 @@ export function useSse() {
     });
     return () => {
       source.close();
-      unsubscribe();
       playback.clear();
       buffered.clear();
     };

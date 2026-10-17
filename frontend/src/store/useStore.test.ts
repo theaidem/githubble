@@ -34,10 +34,12 @@ describe("board store", () => {
 
   it("reset clears session without dropping connection status", () => {
     useStore.getState().setOnline(3);
+    useStore.getState().setQueued(2);
     receive("1", "WatchEvent");
     useStore.getState().reset();
     expect(useStore.getState().entities.eventIds).toEqual([]);
     expect(useStore.getState().online).toBe(3);
+    expect(useStore.getState().queued).toBe(2);
   });
 
   it("ignores invalid API payloads", () => {

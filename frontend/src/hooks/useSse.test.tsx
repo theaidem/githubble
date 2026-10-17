@@ -38,7 +38,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("paces actual SSE messages and clears the queue on reset", () => {
+it("paces SSE messages and keeps pending events flowing after reset", () => {
   render(<Harness />);
   expect(FakeEventSource.instance.url).toBe("/api/events");
   const event = (id: string) => JSON.stringify({ id, type: "WatchEvent", created_at: "2026-10-16T12:00:00Z",
@@ -55,8 +55,13 @@ it("paces actual SSE messages and clears the queue on reset", () => {
   expect(screen.getByText("2 shown, 0 queued")).toBeInTheDocument();
   act(() => {
     FakeEventSource.instance.emit("message", event("3"));
+    FakeEventSource.instance.emit("message", event("4"));
     useStore.getState().reset();
   });
-  act(() => vi.advanceTimersByTime(60_000));
-  expect(screen.getByText("0 shown, 0 queued")).toBeInTheDocument();
+  expect(screen.getByText("0 shown, 2 queued")).toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(1000));
+  expect(screen.getByText("1 shown, 1 queued")).toBeInTheDocument();
+  act(() => vi.advanceTimersByTime(6000));
+  expect(screen.getByText("2 shown, 0 queued")).toBeInTheDocument();
+  expect(useStore.getState().entities.eventIds).toEqual(["4", "3"]);
 });
