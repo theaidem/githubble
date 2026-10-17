@@ -1,7 +1,15 @@
-FROM alpine:3.10
-RUN apk add -U --no-cache ca-certificates
+# ---- build stage ----
+FROM golang:1.26-alpine AS build
 WORKDIR /app
-ADD githubble /app
-ADD .env /app
+COPY go.mod ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /githubble .
+
+# ---- runtime stage ----
+FROM gcr.io/distroless/static:nonroot
+WORKDIR /app
+COPY --from=build /githubble /app/githubble
 EXPOSE 3003
-CMD ./githubble
+USER nonroot:nonroot
+ENTRYPOINT ["/app/githubble"]

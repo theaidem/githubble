@@ -1,14 +1,16 @@
-frontend:
-  build: ./frontend
-  restart: always
-  links:
-    - backend:backend
-  ports:
-    - "80:80"
-backend:
+services:
+  backend:
     build: ./backend
-    restart: always
-    volumes:
-      - ./backend:/app
+    environment:
+      GITHUB_TOKENS: ${GITHUB_TOKENS:?Set GITHUB_TOKENS in .env or environment}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://backend:3003
+    depends_on:
+      - backend
     ports:
-      - "3000:3000"
+      - "3001:3001"
+    restart: unless-stopped

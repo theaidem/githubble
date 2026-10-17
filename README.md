@@ -1,69 +1,59 @@
-# [GitHubble](http://theaidem.github.io/githubble/)
+# GitHubble
 
-View github stars / forks in real-time
+Live dashboard for public GitHub stars and forks. Go polls the GitHub public
+events API and broadcasts WatchEvent/ForkEvent via SSE. Next.js streams those
+events through a same-origin route into a React dashboard with session stats,
+top actors/repositories, event navigation, pause, counters, and reset.
 
-## What Uses?
+## Run with Docker Compose
 
-### Frontend
+1. Create a [GitHub personal access token](https://github.com/settings/tokens)
+   (a token with no scopes is enough for public events).
+2. Copy `.env.example` to `.env` and set `GITHUB_TOKENS` (separate multiple tokens with commas).
+3. Run `docker compose up --build` and open http://localhost:3001.
 
-[Redux](https://github.com/reactjs/redux),
-[react](https://github.com/facebook/react),
-[normalizr](https://github.com/gaearon/normalizr)
+The only public service is Next.js on port 3001. The Go backend is internal to
+Compose. Never put a GitHub token into `NEXT_PUBLIC_*` variables.
 
-[Webpack](https://github.com/webpack/webpack) module bundler
- and [Semantic UI](https://github.com/Semantic-Org/Semantic-UI) components
+## Local development
 
-### Backend
+Requires Go 1.26+ and Node.js 22.12+.
 
-[Golang](https://golang.org/) :+1:
-
-[Server-Sent Events](http://www.w3schools.com/html/html5_serversentevents.asp) sending event streams for clients
-
-## How to run localy
-
-Make sure you have [Golang](https://golang.org/) and [NodeJS](https://nodejs.org/) installed
-
-Clone the repo:
-
-```bash
-git clone https://github.com/theaidem/githubble
-cd githubble/backend
-go get -v .
+```sh
+cd backend
+GITHUB_TOKENS=your_token go run .
 ```
 
-Generate your personal [access token](https://github.com/settings/tokens) from Github, then Build and run githubble server:
+In another terminal:
 
-`<github_access_token>` is Your Personal [access token](https://github.com/settings/tokens) from Github
-
-Copy environment file
-
-```bash
-cp .env.example .env
+```sh
+cd frontend
+npm ci
+npm run dev
 ```
 
-and paste your token(s) in this file:
+Open http://localhost:3001. If Go isn't listening on localhost:3003, set
+`BACKEND_URL` for the Next.js process (e.g. `BACKEND_URL=http://localhost:3003`).
+The backend only polls while at least one SSE client is connected. It checks
+up to 300 recent events (three pages of 100) and honors GitHub's
+`X-Poll-Interval` (normally 60 seconds), using conditional requests. New
+events may therefore appear with a delay. The public events feed is eventually
+consistent; this app does not guarantee delivery of every GitHub event.
+The browser paces each received batch across the following minute to make
+the feed easier to watch. Its status line shows the last GitHub check and the
+number of buffered events; pacing does not mean the underlying data is newer.
+New connections also receive a small replay of recent events so the board can
+populate immediately after the service has completed at least one poll.
 
+The Go service writes structured JSON logs to stdout. Set `LOG_LEVEL=debug`
+in `.env` for additional diagnostics (`info` is the default), then run
+`docker compose logs -f backend`. Logs report client counts, scanned pages,
+new stars/forks, GitHub poll interval, rate-limit status and errors; they do
+not include token values or event payloads.
+
+## Checks
+
+```sh
+cd backend && go test -race ./... && go vet ./...
+cd frontend && npm test && npm run typecheck && npm run build
 ```
-GITHUB_TOKENS = <github_access_token>
-```
-
-and run the commands:
-
-```bash
-make build && make run
-```
-
-From another terminal window:
-
-```bash
-cd path/to/githubble/frontend
-```
-
-Install dependencies and run:
-
-```
-npm i
-npm start
-```
-
-open [localhost:3001](http://localhost:3001)
