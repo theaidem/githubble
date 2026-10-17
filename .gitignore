@@ -28,6 +28,8 @@ dist
 
 # Dependency directory
 node_modules
+.next
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
