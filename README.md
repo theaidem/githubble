@@ -17,7 +17,7 @@ Compose. Never put a GitHub token into `NEXT_PUBLIC_*` variables.
 
 ## Local development
 
-Requires Go 1.26+ and Node.js 22.12+.
+Requires Go 1.26.9+ and Node.js 22.12+.
 
 ```sh
 cd backend
@@ -57,3 +57,7 @@ not include token values or event payloads.
 cd backend && go test -race ./... && go vet ./...
 cd frontend && npm test && npm run typecheck && npm run build
 ```
+
+GitHub Actions runs these checks on pull requests and pushes to `master` or
+`rewrite-modern`, plus Go lint/vulnerability scanning, npm audit, and both
+Docker builds. No GitHub API token is needed for CI; images are not published.
