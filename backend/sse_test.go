@@ -20,7 +20,7 @@ func TestSSEBroadcastAndDisconnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if got := resp.Header.Get("Content-Type"); got != "text/event-stream" {
 		t.Fatalf("Content-Type = %q", got)
 	}
@@ -61,7 +61,7 @@ func TestSSEReplaysRecentEventsToNewClient(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	scanner := bufio.NewScanner(resp.Body)
 	var events []string
 	for scanner.Scan() {

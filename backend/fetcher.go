@@ -112,13 +112,13 @@ func (f *fetcher) poll(ctx context.Context) error {
 		case http.StatusNotModified:
 			f.broker.publish(ssePayload{Event: "ratelimits", Data: []byte(fmt.Sprintf("token-%d/%s/%s", f.idx+1, resp.Header.Get("X-RateLimit-Remaining"), resp.Header.Get("X-RateLimit-Limit")))})
 			f.publishChecked()
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			slog.InfoContext(ctx, "github_feed_unchanged", "poll_interval_seconds", int(f.interval.Seconds()), "rate_remaining", f.remaining, "rate_limit", f.limit)
 			return nil
 		case http.StatusOK:
 			var events []json.RawMessage
 			err = json.NewDecoder(io.LimitReader(resp.Body, 8<<20)).Decode(&events)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			if err != nil {
 				return fmt.Errorf("decode events page %d: %w", page, err)
 			}
@@ -134,7 +134,7 @@ func (f *fetcher) poll(ctx context.Context) error {
 			}
 		case http.StatusForbidden, http.StatusTooManyRequests:
 			reset, err := strconv.ParseInt(resp.Header.Get("X-RateLimit-Reset"), 10, 64)
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			if err == nil && reset > time.Now().Unix() {
 				f.resetAt[f.idx] = time.Unix(reset, 0).Add(time.Second)
 			} else {
@@ -144,13 +144,13 @@ func (f *fetcher) poll(ctx context.Context) error {
 			f.idx = (f.idx + 1) % len(f.tokens)
 			return nil
 		case http.StatusUnauthorized:
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			f.resetAt[f.idx] = time.Now().Add(time.Hour)
 			slog.ErrorContext(ctx, "github_token_rejected", "token_index", f.idx+1, "page", page)
 			f.idx = (f.idx + 1) % len(f.tokens)
 			return nil
 		default:
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return fmt.Errorf("unexpected status %s", resp.Status)
 		}
 	}

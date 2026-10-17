@@ -46,7 +46,7 @@ func run() error {
 	mux := http.NewServeMux()
 	mux.Handle("/sse", b)
 	mux.HandleFunc("/healthz", func(rw http.ResponseWriter, r *http.Request) {
-		rw.Write([]byte("ok"))
+		_, _ = rw.Write([]byte("ok"))
 	})
 
 	srv := &http.Server{Addr: "0.0.0.0:3003", Handler: mux, ReadHeaderTimeout: 5 * time.Second}

@@ -24,7 +24,7 @@ func TestFetcherPollDeduplicatesAndOrders(t *testing.T) {
 		}
 		w.Header().Set("X-RateLimit-Remaining", "42")
 		w.Header().Set("X-RateLimit-Limit", "5000")
-		fmt.Fprint(w, feed)
+		_, _ = fmt.Fprint(w, feed)
 	}))
 	defer srv.Close()
 	b := newBroker()
@@ -67,11 +67,11 @@ func TestFetcherFindsStarsBeyondFirstPageAndRespectsPollInterval(t *testing.T) {
 				return
 			}
 			w.Header().Set("ETag", `"feed-v1"`)
-			fmt.Fprint(w, `[{"id":"3","type":"PushEvent"}]`)
+			_, _ = fmt.Fprint(w, `[{"id":"3","type":"PushEvent"}]`)
 		case "2":
-			fmt.Fprint(w, `[{"id":"2","type":"WatchEvent"}]`)
+			_, _ = fmt.Fprint(w, `[{"id":"2","type":"WatchEvent"}]`)
 		case "3":
-			fmt.Fprint(w, `[{"id":"1","type":"ForkEvent"}]`)
+			_, _ = fmt.Fprint(w, `[{"id":"1","type":"ForkEvent"}]`)
 		default:
 			t.Errorf("unexpected page %q", r.URL.Query().Get("page"))
 		}
@@ -109,7 +109,7 @@ func TestFetcherRotatesRateLimitedToken(t *testing.T) {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
-		fmt.Fprint(w, `[]`)
+		_, _ = fmt.Fprint(w, `[]`)
 	}))
 	defer srv.Close()
 	f, _ := newFetcher([]string{"exhausted", "working"}, newBroker())
