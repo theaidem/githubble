@@ -88,9 +88,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
       - name: Configure SSH
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -115,7 +112,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/deploy-ssh/key"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/deploy-ssh/known_hosts"
           chmod 600 "$RUNNER_TEMP/deploy-ssh/known_hosts"
-      - name: Deploy and restart services
+      - name: Update checkout and restart services
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -123,22 +120,52 @@ jobs:
         run: |
           set -euo pipefail
           ssh_options=(-i "$RUNNER_TEMP/deploy-ssh/key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$RUNNER_TEMP/deploy-ssh/known_hosts")
-          archive="$DEPLOY_PATH/.githubble-deploy-$GITHUB_SHA.tar"
-          git archive --format=tar HEAD > "$RUNNER_TEMP/release.tar"
-          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -se -- "$DEPLOY_PATH" <<'REMOTE'
-          set -euo pipefail
-          deploy_path=$1
-          test -f "$deploy_path/.env" || { echo "Missing $deploy_path/.env on server" >&2; exit 1; }
-          docker compose version >/dev/null
-          REMOTE
-          scp "${ssh_options[@]}" "$RUNNER_TEMP/release.tar" "$DEPLOY_USER@$DEPLOY_HOST:$archive"
           ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -se -- "$DEPLOY_PATH" "$GITHUB_SHA" <<'REMOTE'
           set -euo pipefail
           deploy_path=$1
           sha=$2
-          archive="$deploy_path/.githubble-deploy-$sha.tar"
-          trap 'rm -f "$archive"' EXIT
-          tar -xf "$archive" -C "$deploy_path"
-          docker compose --project-name githubble --env-file "$deploy_path/.env" -f "$deploy_path/docker-compose.yaml" up -d --build --force-recreate --remove-orphans
-          docker compose --project-name githubble --env-file "$deploy_path/.env" -f "$deploy_path/docker-compose.yaml" ps
+          cd "$deploy_path"
+          test -f .env || { echo "Missing $deploy_path/.env on server" >&2; exit 1; }
+          git rev-parse --is-inside-work-tree >/dev/null
+          docker compose version >/dev/null
+          git fetch --prune origin
+          git reset --hard "$sha"
+          docker compose --project-name githubble --env-file .env -f docker-compose.yaml up -d --build --force-recreate --remove-orphans
+          docker compose --project-name githubble --env-file .env -f docker-compose.yaml ps
           REMOTE
+
+  notify:
+    name: Notify Telegram
+    if: always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [go, go-lint, frontend, docker, deploy]
+    runs-on: ubuntu-latest
+    environment: production
+    # A failed notification must not change the outcome of the pipeline.
+    continue-on-error: true
+    steps:
+      - name: Send message
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          THREAD_ID: ${{ vars.TELEGRAM_THREAD_ID }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "Telegram settings are missing, notification skipped" >&2
+            exit 0
+          fi
+          case "$DEPLOY_RESULT" in
+            success) status='✅ Deployed' ;;
+            skipped) status='❌ Checks failed, not deployed' ;;
+            *) status='❌ Deploy failed' ;;
+          esac
+          subject=$(printf '%s\n' "$COMMIT_MESSAGE" | head -n 1)
+          text=$(printf '%s githubble %s\n%s\n%s' "$status" "${GITHUB_SHA::7}" "$subject" "$RUN_URL")
+          args=(--data-urlencode "chat_id=$CHAT_ID" --data-urlencode "text=$text" --data-urlencode "disable_web_page_preview=true")
+          if [ -n "$THREAD_ID" ]; then
+            args+=(--data-urlencode "message_thread_id=$THREAD_ID")
+          fi
+          curl -fsS "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" "${args[@]}" > /dev/null
