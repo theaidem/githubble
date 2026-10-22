@@ -134,6 +134,49 @@ jobs:
           docker compose --project-name githubble --env-file .env -f docker-compose.yaml ps
           REMOTE
 
+  pages-build:
+    name: Build GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [go, go-lint, frontend, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/configure-pages@v5
+      - name: Build static export
+        working-directory: frontend
+        env:
+          GITHUB_PAGES: 'true'
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_SSE_URL: ${{ vars.PAGES_SSE_URL || 'https://githubble.root.sx/api/events' }}
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          npm ci
+          # Route handlers cannot be exported statically; the stream comes from the public deployment.
+          rm -rf src/app/api
+          npm run build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/out
+
+  pages-deploy:
+    name: Deploy to GitHub Pages
+    needs: pages-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
   notify:
     name: Notify Telegram
     if: always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master'
