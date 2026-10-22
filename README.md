@@ -57,16 +57,6 @@ in `.env` for additional diagnostics (`info` is the default), then run
 new stars/forks, GitHub poll interval, rate-limit status and errors; they do
 not include token values or event payloads.
 
-## GitHub Pages
-
-On every push to `master` CI also publishes a static build of the frontend to
-GitHub Pages (enable it once in Settings → Pages → Source: GitHub Actions).
-The static build has no Next.js route, so it reads the SSE stream from
-`https://githubble.root.sx/api/events`; override it with the repository
-variable `PAGES_SSE_URL`. Local check:
-`GITHUB_PAGES=true PAGES_BASE_PATH=/githubble NEXT_PUBLIC_SSE_URL=... npm run build`
-after temporarily removing `frontend/src/app/api`.
-
 ## Checks
 
 ```sh
