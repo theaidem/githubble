@@ -18,6 +18,8 @@ export async function GET(request: Request) {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache, no-transform",
         "X-Accel-Buffering": "no",
+        // The stream is public; allow the GitHub Pages build to read it.
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch {
